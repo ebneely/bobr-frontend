@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, type ElementType, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ElementType,
+  type ReactNode,
+} from 'react';
 import { useReducedMotion } from '@/lib/motion/use-reduced-motion';
 
 type RevealDistance = 'sm' | 'lg';
@@ -9,8 +15,13 @@ interface RevealProps {
   children: ReactNode;
   /** Travel distance. `sm` (30px) for cards and list items, `lg` (60px) for whole blocks. */
   distance?: RevealDistance;
-  /** Seconds to wait before starting — stagger a group by incrementing this. */
-  delay?: number;
+  /** Also scale up very slightly on the way in. For card-shaped things. */
+  scale?: boolean;
+  /**
+   * Stagger index. Multiplied by --bobr-stagger (0.1s), so siblings pass 0, 1,
+   * 2 rather than each computing its own seconds.
+   */
+  index?: number;
   className?: string;
   as?: ElementType;
 }
@@ -30,17 +41,21 @@ interface RevealProps {
 export function Reveal({
   children,
   distance = 'sm',
-  delay = 0,
+  scale = false,
+  index = 0,
   className,
   as: Tag = 'div',
 }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
   const [entered, setEntered] = useState(false);
+  // Tracks the transition itself, so will-change can be dropped once the work
+  // is actually finished rather than when it begins.
+  const [settled, setSettled] = useState(false);
   const reduced = useReducedMotion();
 
   // Derived, not stored. With motion off the content is visible from the very
-  // first render — setting that in an effect would render it hidden once, and
-  // a reveal that never fires is missing content rather than calm content.
+  // first render — setting that in an effect would render it hidden once, and a
+  // reveal that never fires is missing content rather than calm content.
   const shown = entered || reduced;
 
   useEffect(() => {
@@ -73,18 +88,34 @@ export function Reveal({
   const travel =
     distance === 'lg' ? 'var(--bobr-reveal-lg)' : 'var(--bobr-reveal-sm)';
 
+  const hiddenTransform = scale
+    ? `translate3d(0, ${travel}, 0) scale(var(--bobr-reveal-scale))`
+    : `translate3d(0, ${travel}, 0)`;
+
+  /**
+   * will-change is a promise to the compositor that costs a layer to keep.
+   *
+   * It has to be set BEFORE the transition runs and dropped AFTER it ends. The
+   * obvious `shown ? 'auto' : '...'` is backwards: it removes the hint at the
+   * exact moment the animation starts, so the promotion never covers the work
+   * it was for. Holding it forever is the other failure — a layer per element
+   * for the life of the page is how a smooth site turns janky at scale.
+   */
+  const willChange = reduced || settled ? 'auto' : 'opacity, transform';
+
   return (
     <Tag
       ref={ref}
       className={className}
+      onTransitionEnd={() => setSettled(true)}
       style={{
         opacity: shown ? 1 : 0,
-        transform: shown ? 'translate3d(0, 0, 0)' : `translate3d(0, ${travel}, 0)`,
-        transition: `opacity var(--bobr-duration-slow) var(--bobr-ease-out) ${delay}s, transform var(--bobr-duration-slow) var(--bobr-ease-out) ${delay}s`,
-        // Promote only while the animation can still run. Leaving will-change
-        // on permanently keeps a compositor layer per element for the life of
-        // the page, which is how a smooth site turns janky at scale.
-        willChange: shown ? 'auto' : 'opacity, transform',
+        transform: shown ? 'translate3d(0, 0, 0) scale(1)' : hiddenTransform,
+        transitionProperty: 'opacity, transform',
+        transitionDuration: 'var(--bobr-duration-slow)',
+        transitionTimingFunction: 'var(--bobr-ease-reveal)',
+        transitionDelay: `calc(var(--bobr-stagger) * ${index})`,
+        willChange,
       }}
     >
       {children}

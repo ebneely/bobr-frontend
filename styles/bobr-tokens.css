@@ -85,6 +85,12 @@
   /* --- Spacing ------------------------------------------------------------ */
   --bobr-gutter: clamp(1.25rem, 0.5rem + 3vw, 5.5rem);
   --bobr-max-width: 1280px;
+  /* Fixed header height. The mobile drawer hangs off this, so it has to be a
+     token rather than a number repeated in two places that can drift apart. */
+  --bobr-header-h: 62px;
+  /* The measured point where the full menu gives way to a hamburger. Kept here
+     for reference; the media query itself cannot read a custom property. */
+  --bobr-nav-breakpoint: 810px;
   --bobr-section-y: clamp(4rem, 2rem + 7vw, 7.5rem);
 
   /* --- Motion -------------------------------------------------------------
@@ -94,15 +100,30 @@
      and settle rather than accelerate away. */
   --bobr-ease: cubic-bezier(0.44, 0, 0.56, 1);
   --bobr-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Entrances use the same symmetric curve as hovers. Measured on the
+     reference's reveal transitions, and it is what makes an entrance read as
+     deliberate rather than as something snapping into place. */
+  --bobr-ease-reveal: cubic-bezier(0.44, 0, 0.56, 1);
 
   --bobr-duration-fast: 0.25s;
   --bobr-duration: 0.4s;   /* measured hover duration */
-  --bobr-duration-slow: 0.8s;
+  --bobr-duration-slow: 0.8s;  /* measured reveal duration */
 
   /* Entrance travel distances, measured from the reference's reveal
      transforms: 30px for cards and list items, 60px for whole blocks. */
   --bobr-reveal-sm: 30px;
   --bobr-reveal-lg: 60px;
+  /* Cards also scale up very slightly as they rise. Subtle on purpose — enough
+     to read as approaching, not enough to look like a zoom. */
+  --bobr-reveal-scale: 0.97;
+
+  /* Gap between staggered siblings. 0.1s: small enough that a row still reads
+     as one gesture, large enough to lead the eye across it. */
+  --bobr-stagger: 0.1s;
+
+  /* Ticker geometry, measured: 396px items with a 40px gap. */
+  --bobr-ticker-item: 396px;
+  --bobr-ticker-gap: 40px;
 
   --bobr-shadow-sm: 0 1px 2px rgba(30, 58, 28, 0.06);
   --bobr-shadow: 0 10px 30px rgba(30, 58, 28, 0.08);
@@ -118,5 +139,7 @@
     --bobr-duration-slow: 0ms;
     --bobr-reveal-sm: 0px;
     --bobr-reveal-lg: 0px;
+    --bobr-reveal-scale: 1;
+    --bobr-stagger: 0s;
   }
 }

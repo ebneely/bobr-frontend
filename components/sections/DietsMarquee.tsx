@@ -38,13 +38,13 @@ export async function DietsMarquee() {
         />
       </div>
 
-      <Marquee duration={44} gap="1.5rem">
+      <Marquee>
         {diets.map((diet) => (
           <article
             key={diet.key}
             className="bobr-card"
             style={{
-              width: 'clamp(16rem, 24vw, 21.5rem)',
+              width: 'min(var(--bobr-ticker-item), 82vw)',
               background: 'var(--bobr-surface)',
               border: '1px solid var(--bobr-border)',
               borderRadius: 'var(--bobr-radius)',

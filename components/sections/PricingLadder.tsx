@@ -39,7 +39,7 @@ export async function PricingLadder() {
             const featured = i === tiers.length - 1;
 
             return (
-              <Reveal key={tier} delay={i * 0.06}>
+              <Reveal key={tier} index={i} scale>
                 <div
                   className="bobr-card"
                   style={{

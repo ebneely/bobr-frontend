@@ -182,3 +182,184 @@ html.lenis body { height: auto; }
   .bobr-card:hover { transform: none; }
   .bobr-card:hover .bobr-card__media > * { transform: none; }
 }
+
+/* --- Parallax backdrop layer ---------------------------------------------
+   Fills its clipping parent so the tiled pattern has a box to repeat across.
+   Parallax transforms this element, which makes it the containing block for
+   anything absolute inside it — so its child sizes with height + margin
+   instead. */
+.bobr-backdrop-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* ==========================================================================
+   Navigation
+   Breakpoint is 810px: the measured point where the reference swaps the full
+   menu for a hamburger. Declared once here as a media query rather than from
+   JS, so the correct bar is in the first paint and there is no flash of the
+   wrong navigation before hydration.
+   ========================================================================== */
+
+.bobr-nav-desktop { display: flex; }
+.bobr-nav-toggle { display: none; }
+
+@media (max-width: 810px) {
+  .bobr-nav-desktop { display: none; }
+  .bobr-nav-toggle { display: inline-flex; }
+}
+
+/* --- Hamburger -> X -------------------------------------------------------
+   Three bars. The outer two rotate onto each other and the middle fades, so
+   the control animates between its two meanings instead of swapping icons. */
+.bobr-burger {
+  position: relative;
+  width: 24px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.bobr-burger span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--bobr-fg);
+  transition:
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s linear,
+    top 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bobr-burger span:nth-child(1) { top: 0; }
+.bobr-burger span:nth-child(2) { top: 7px; }
+.bobr-burger span:nth-child(3) { top: 14px; }
+
+/* Both outer bars travel to the middle first, then cross — rotating in place
+   from their original offsets would make the X sit 7px tall instead of centred. */
+.bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(1) {
+  top: 7px;
+  transform: rotate(45deg);
+}
+.bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(2) {
+  opacity: 0;
+}
+.bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(3) {
+  top: 7px;
+  transform: rotate(-45deg);
+}
+
+/* --- Drawer ---------------------------------------------------------------
+   Slides down from beneath the header bar. `visibility` is animated alongside
+   transform so the closed drawer is not merely off-screen but untabbable —
+   a translated-away menu still takes keyboard focus, which strands the user
+   in an invisible list of links. */
+.bobr-drawer {
+  position: fixed;
+  top: var(--bobr-header-h);
+  left: 0;
+  width: 100%;
+  height: calc(100dvh - var(--bobr-header-h));
+  z-index: 49;
+  background: var(--bobr-bg);
+  backdrop-filter: blur(10px);
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.45s;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.bobr-drawer[data-open='true'] {
+  transform: translateY(0);
+  visibility: visible;
+  transition:
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0s;
+}
+
+/* Links rise in behind the panel, 0.05s apart. --i is set per item inline. */
+.bobr-drawer-link {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.3s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.bobr-drawer[data-open='true'] .bobr-drawer-link {
+  opacity: 1;
+  transform: translateY(0);
+  /* Waits for the panel to be most of the way down before the list starts. */
+  transition-delay: calc(0.18s + (var(--i, 0) * 0.05s));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bobr-drawer,
+  .bobr-drawer-link,
+  .bobr-burger span {
+    transition-duration: 0s;
+    transition-delay: 0s;
+  }
+}
+
+/* --- Slider controls ------------------------------------------------------ */
+.bobr-slider-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--bobr-radius-lg);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--bobr-cream-200);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bobr-slider-btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.4); }
+.bobr-slider-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* --- Hero plate -----------------------------------------------------------
+   A very slow continuous rotation. 48s is deliberately past the point of being
+   watchable: it should register as the plate being alive, never as spinning.
+   Paired with the scroll parallax it gives the hero two independent motions at
+   different rates, which is what stops it reading as a flat pasted cutout. */
+@keyframes bobr-plate-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.bobr-plate-spin {
+  animation: bobr-plate-spin 48s linear infinite;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+/* The decorative ring counter-rotates, so the two layers shear against each
+   other rather than moving as one rigid object. */
+.bobr-plate-ring {
+  animation: bobr-plate-spin 72s linear infinite reverse;
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bobr-plate-spin,
+  .bobr-plate-ring { animation: none; will-change: auto; }
+}
+
+/* --- Counter value --------------------------------------------------------
+   30px / 700, matching the measured badge. Sits on its own class rather than
+   inline so the tabular-figure rule in Counter.tsx and the size live in one
+   predictable place. */
+.bobr-counter-value {
+  font-size: 30px;
+  font-weight: var(--bobr-weight-bold);
+  line-height: 1;
+}
+
+/* Firefox takes scrollbar-width; WebKit needs its own pseudo-element. */
+.bobr-slider-track::-webkit-scrollbar { display: none; }

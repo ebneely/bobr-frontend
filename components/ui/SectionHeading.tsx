@@ -49,21 +49,21 @@ export function SectionHeading({
         <EyebrowChip>{eyebrow}</EyebrowChip>
       </Reveal>
 
-      <Reveal delay={0.08}>
+      <Reveal index={1}>
         <Tag className={Tag === 'h1' ? 'bobr-display' : 'bobr-h2'}>
           {lead} <span className="bobr-em">{em}</span>
         </Tag>
       </Reveal>
 
       {body && (
-        <Reveal delay={0.16}>
+        <Reveal index={2}>
           <p className="bobr-body" style={{ maxWidth: '38rem' }}>
             {body}
           </p>
         </Reveal>
       )}
 
-      {children && <Reveal delay={0.24}>{children}</Reveal>}
+      {children && <Reveal index={3}>{children}</Reveal>}
     </div>
   );
 }

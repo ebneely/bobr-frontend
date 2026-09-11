@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/motion/Reveal';
 import { Parallax } from '@/components/motion/Parallax';
+import { PatternBackdrop } from '@/components/motion/PatternBackdrop';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
 
 /**
@@ -22,11 +23,17 @@ export async function Steps() {
         background: 'var(--bobr-bg-alt)',
         paddingBlock: 'var(--bobr-section-y)',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      <PatternBackdrop ratio={0.1} opacity={0.45} />
+
       <div
         className="bobr-shell"
         style={{
+          // Lifted above the drifting backdrop, which sits at z-index 0.
+          position: 'relative',
+          zIndex: 1,
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 24rem), 1fr))',
           gap: 'clamp(2.5rem, 5vw, 4.5rem)',
@@ -34,7 +41,7 @@ export async function Steps() {
         }}
       >
         <Reveal distance="lg">
-          <Parallax distance={-90}>
+          <Parallax ratio={0.15}>
             <PlaceholderMedia
               tone="cream"
               ratio="4 / 5"
@@ -61,7 +68,7 @@ export async function Steps() {
             }}
           >
             {steps.map((step, i) => (
-              <Reveal key={step} as="li" delay={i * 0.07}>
+              <Reveal key={step} as="li" index={i}>
                 <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
                   <span
                     aria-hidden

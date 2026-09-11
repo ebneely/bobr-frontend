@@ -39,7 +39,7 @@ export async function ValueProps() {
           }}
         >
           {keys.map((key, i) => (
-            <Reveal key={key} delay={i * 0.08}>
+            <Reveal key={key} index={i} scale>
               <article
                 className="bobr-card"
                 style={{

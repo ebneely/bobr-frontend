@@ -59,9 +59,11 @@ function Track({
  */
 export function Marquee({
   children,
-  duration = 40,
+  // Measured cycle on the reference. Linear, never eased: an eased loop has a
+  // slow point, and a slow point in something that never stops reads as a stall.
+  duration = 20,
   reverse = false,
-  gap = '1.5rem',
+  gap = 'var(--bobr-ticker-gap)',
   className,
 }: MarqueeProps) {
   const items = Children.toArray(children);

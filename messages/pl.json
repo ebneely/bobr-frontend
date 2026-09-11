@@ -17,7 +17,10 @@
     "diets": "Diety",
     "pricing": "Cennik",
     "contact": "Kontakt",
-    "cta": "Rozpocznij"
+    "cta": "Rozpocznij",
+    "menuOpen": "Otwórz menu",
+    "menuClose": "Zamknij menu",
+    "primary": "Nawigacja główna"
   },
   "home": {
     "eyebrow": "Catering dietetyczny",

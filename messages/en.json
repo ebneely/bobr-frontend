@@ -17,7 +17,10 @@
     "diets": "Diets",
     "pricing": "Pricing",
     "contact": "Contact",
-    "cta": "Get started"
+    "cta": "Get started",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "primary": "Main navigation"
   },
   "home": {
     "eyebrow": "Diet catering",
