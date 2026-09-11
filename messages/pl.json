@@ -1,0 +1,165 @@
+{
+  "common": {
+    "appName": "BOBR",
+    "login": "Zaloguj się",
+    "logout": "Wyloguj się",
+    "register": "Załóż konto",
+    "continue": "Dalej",
+    "back": "Wstecz",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "loading": "Ładowanie…",
+    "language": "Język"
+  },
+  "nav": {
+    "home": "Start",
+    "howItWorks": "Jak to działa",
+    "diets": "Diety",
+    "pricing": "Cennik",
+    "contact": "Kontakt",
+    "cta": "Rozpocznij"
+  },
+  "home": {
+    "eyebrow": "Catering dietetyczny",
+    "titleLead": "Dieta dopasowana",
+    "titleEm": "do Ciebie",
+    "subtitle": "Świeże posiłki z dostawą pod drzwi. Keto, bezglutenowa i dla alergików — układane na podstawie Twojego profilu i konsultacji z dr Abdelrahmanem.",
+    "cta": "Rozpocznij",
+    "ctaSecondary": "Jak to działa",
+    "statValue": "3",
+    "statLabel": "rodzaje diet"
+  },
+  "value": {
+    "eyebrow": "Dlaczego BOBR",
+    "titleLead": "Jedzenie, które",
+    "titleEm": "pracuje dla Ciebie",
+    "body": "Zaczynamy od Twojego profilu — wagi, wzrostu i aktywności — a nie od gotowego pudełka z półki.",
+    "a": {
+      "title": "Profil przed zakupem",
+      "body": "Waga, wzrost, skład ciała i aktywność fizyczna. Dieta powstaje dopiero, gdy wiemy, dla kogo."
+    },
+    "b": {
+      "title": "Dostawa pod drzwi",
+      "body": "Wybierasz dni w kalendarzu. Przy dłuższym planie dostawa jest po naszej stronie."
+    },
+    "c": {
+      "title": "Opieka dietetyka",
+      "body": "Konsultacja z dr Abdelrahmanem przed posiłkiem i przed planem — opcjonalnie, 100 zł za sesję."
+    }
+  },
+  "diets": {
+    "eyebrow": "Nasze diety",
+    "titleLead": "Wybierz",
+    "titleEm": "swój plan",
+    "KETOGENIC": {
+      "name": "Dieta ketogeniczna",
+      "body": "Niska podaż węglowodanów, wysoka tłuszczu."
+    },
+    "GLUTEN_FREE": {
+      "name": "Dieta bezglutenowa",
+      "body": "Bez pszenicy, żyta i jęczmienia."
+    },
+    "ALLERGIES": {
+      "name": "Dieta dla alergików",
+      "body": "Układana wokół Twoich alergenów."
+    },
+    "CONSULTATION": {
+      "name": "Konsultacja",
+      "body": "Rozmowa z dr Abdelrahmanem."
+    }
+  },
+  "steps": {
+    "eyebrow": "Jak to działa",
+    "titleLead": "Cztery kroki do",
+    "titleEm": "pierwszej dostawy",
+    "one": {
+      "title": "Załóż konto",
+      "body": "Logowanie jest wymagane, żeby przejść dalej."
+    },
+    "two": {
+      "title": "Uzupełnij profil",
+      "body": "Waga, wzrost, aktywność i cztery zdjęcia — przód, tył i oba boki."
+    },
+    "three": {
+      "title": "Wybierz dietę i dni",
+      "body": "Jednorazowo albo w kalendarzu, minimum pięć posiłków."
+    },
+    "four": {
+      "title": "Odbierz dostawę",
+      "body": "Płatność przy odbiorze. Postępy śledzisz w panelu."
+    }
+  },
+  "pricing": {
+    "eyebrow": "Cennik",
+    "titleLead": "Im dłużej,",
+    "titleEm": "tym taniej",
+    "body": "Zamówienie jednorazowe z dostawą po stronie klienta, albo kalendarz — wtedy dostawa jest po naszej stronie.",
+    "t1": {
+      "days": "Jednorazowo",
+      "note": "Dostawa po stronie klienta",
+      "discount": "—"
+    },
+    "t2": {
+      "days": "od 5 dni",
+      "note": "Kalendarz, dostawa gratis",
+      "discount": "—"
+    },
+    "t3": {
+      "days": "10 dni",
+      "note": "Dostawa gratis",
+      "discount": "10%"
+    },
+    "t4": {
+      "days": "20 dni",
+      "note": "Dostawa gratis",
+      "discount": "15%"
+    },
+    "t5": {
+      "days": "Cały miesiąc",
+      "note": "Dostawa gratis",
+      "discount": "20%"
+    }
+  },
+  "ctaBand": {
+    "titleLead": "Gotowy, żeby",
+    "titleEm": "zacząć?",
+    "body": "Załóż konto, uzupełnij profil i wybierz pierwszy tydzień.",
+    "cta": "Rozpocznij"
+  },
+  "footer": {
+    "tagline": "Catering dietetyczny z dostawą.",
+    "links": "Nawigacja",
+    "contact": "Kontakt",
+    "rights": "Wszelkie prawa zastrzeżone."
+  },
+  "mealTypes": {
+    "KETOGENIC": "Dieta ketogeniczna",
+    "GLUTEN_FREE": "Dieta bezglutenowa",
+    "ALLERGIES": "Dieta dla alergików",
+    "CONSULTATION": "Konsultacja"
+  },
+  "intake": {
+    "title": "Twój profil",
+    "weight": "Waga",
+    "height": "Wzrost",
+    "bodyComposition": "Skład ciała",
+    "optional": "opcjonalnie",
+    "photos": "Zdjęcia",
+    "photoFront": "Przód",
+    "photoBack": "Tył",
+    "photoLeft": "Lewy bok",
+    "photoRight": "Prawy bok",
+    "activity": "Aktywność fizyczna",
+    "activityNone": "Brak sportu",
+    "activityGym": "Siłownia",
+    "activitySwimmer": "Pływanie",
+    "activityBoxingMma": "Boks lub MMA",
+    "activityOther": "Inne",
+    "activityOtherPlaceholder": "Opisz swoją aktywność"
+  },
+  "errors": {
+    "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+    "network": "Brak połączenia z serwerem.",
+    "required": "To pole jest wymagane."
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "common": {
+    "appName": "BOBR",
+    "login": "Log in",
+    "logout": "Log out",
+    "register": "Create account",
+    "continue": "Continue",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How it works",
+    "diets": "Diets",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "cta": "Get started"
+  },
+  "home": {
+    "eyebrow": "Diet catering",
+    "titleLead": "A diet built",
+    "titleEm": "around you",
+    "subtitle": "Fresh meals delivered to your door. Ketogenic, gluten-free and allergy-safe — built from your own profile and a consultation with Dr Abdelrahman.",
+    "cta": "Get started",
+    "ctaSecondary": "How it works",
+    "statValue": "3",
+    "statLabel": "diet types"
+  },
+  "value": {
+    "eyebrow": "Why BOBR",
+    "titleLead": "Food that",
+    "titleEm": "works for you",
+    "body": "We start from your profile — weight, height and how you train — not from a box off a shelf.",
+    "a": {
+      "title": "Profile before purchase",
+      "body": "Weight, height, body composition and physical activity. The diet is built once we know who it is for."
+    },
+    "b": {
+      "title": "Delivered to your door",
+      "body": "Pick your days on the calendar. On a longer plan the delivery is on us."
+    },
+    "c": {
+      "title": "A dietitian in the loop",
+      "body": "A consultation with Dr Abdelrahman before a meal and before a plan — optional, 100 PLN a session."
+    }
+  },
+  "diets": {
+    "eyebrow": "Our diets",
+    "titleLead": "Choose",
+    "titleEm": "your plan",
+    "KETOGENIC": {
+      "name": "Ketogenic diet",
+      "body": "Low carbohydrate, high fat."
+    },
+    "GLUTEN_FREE": {
+      "name": "Gluten-free diet",
+      "body": "No wheat, rye or barley."
+    },
+    "ALLERGIES": {
+      "name": "Allergies diet",
+      "body": "Built around your own allergens."
+    },
+    "CONSULTATION": {
+      "name": "Consultation",
+      "body": "A session with Dr Abdelrahman."
+    }
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "titleLead": "Four steps to your",
+    "titleEm": "first delivery",
+    "one": {
+      "title": "Create an account",
+      "body": "Login is required to go any further."
+    },
+    "two": {
+      "title": "Complete your profile",
+      "body": "Weight, height, activity and four photos — front, back and both sides."
+    },
+    "three": {
+      "title": "Pick a diet and days",
+      "body": "One-time, or on the calendar with a five-meal minimum."
+    },
+    "four": {
+      "title": "Take the delivery",
+      "body": "Cash on delivery. Track how it is going in your dashboard."
+    }
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "titleLead": "The longer you commit,",
+    "titleEm": "the less you pay",
+    "body": "A one-time order with shipping on you, or the calendar — and then shipping is on us.",
+    "t1": {
+      "days": "One-time",
+      "note": "Shipping paid by you",
+      "discount": "—"
+    },
+    "t2": {
+      "days": "From 5 days",
+      "note": "Calendar, free shipping",
+      "discount": "—"
+    },
+    "t3": {
+      "days": "10 days",
+      "note": "Free shipping",
+      "discount": "10%"
+    },
+    "t4": {
+      "days": "20 days",
+      "note": "Free shipping",
+      "discount": "15%"
+    },
+    "t5": {
+      "days": "Whole month",
+      "note": "Free shipping",
+      "discount": "20%"
+    }
+  },
+  "ctaBand": {
+    "titleLead": "Ready to",
+    "titleEm": "begin?",
+    "body": "Create an account, complete your profile and pick your first week.",
+    "cta": "Get started"
+  },
+  "footer": {
+    "tagline": "Diet catering, delivered.",
+    "links": "Navigation",
+    "contact": "Contact",
+    "rights": "All rights reserved."
+  },
+  "mealTypes": {
+    "KETOGENIC": "Ketogenic diet",
+    "GLUTEN_FREE": "Gluten-free diet",
+    "ALLERGIES": "Allergies diet",
+    "CONSULTATION": "Consultation"
+  },
+  "intake": {
+    "title": "Your profile",
+    "weight": "Weight",
+    "height": "Height",
+    "bodyComposition": "Body composition",
+    "optional": "optional",
+    "photos": "Photos",
+    "photoFront": "Front",
+    "photoBack": "Back",
+    "photoLeft": "Left side",
+    "photoRight": "Right side",
+    "activity": "Physical activity",
+    "activityNone": "No sport",
+    "activityGym": "Gym",
+    "activitySwimmer": "Swimmer",
+    "activityBoxingMma": "Boxer or MMA",
+    "activityOther": "Other",
+    "activityOtherPlaceholder": "Describe your activity"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Could not reach the server.",
+    "required": "This field is required."
+  }
+}

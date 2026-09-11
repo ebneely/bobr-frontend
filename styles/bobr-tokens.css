@@ -1,0 +1,122 @@
+/* BOBR design tokens.
+ *
+ * The scale, rhythm and motion curves below were measured from a reference
+ * restaurant template (maestroo.framer.ai) with DevTools — the type ramp, the
+ * line-height ratios, the radius set and the easing vocabulary are transcribed
+ * from its computed styles. The palette and all content are BOBR's own.
+ *
+ * A raw hex or a magic duration in a component is a bug: it is the thing that
+ * turns a rebrand into a find-and-replace across 200 files. */
+
+:root {
+  /* --- Palette ------------------------------------------------------------
+     Cream ground + deep green ink + warm accent. Reads as food, not as SaaS. */
+  --bobr-cream-100: #fffdf2;
+  --bobr-cream-200: #fffae5;  /* page ground */
+  --bobr-cream-300: #fef5da;  /* raised/alternate band */
+  --bobr-cream-400: #f6ecc9;
+
+  --bobr-green-900: #1e3a1c;
+  --bobr-green-700: #335230;  /* primary — headings, buttons, ink */
+  --bobr-green-500: #4a6f45;
+  --bobr-green-300: #70866e;  /* muted body copy */
+  --bobr-green-100: #d8e2d6;
+
+  --bobr-orange-600: #e8761a;
+  --bobr-orange-500: #ff8b20;  /* accent — emphasis, chips, offsets */
+  --bobr-orange-200: #ffd9b0;
+
+  /* Tints, measured as alpha over the ground rather than flat greys. */
+  --bobr-green-a06: rgba(51, 82, 48, 0.06);
+  --bobr-green-a12: rgba(51, 82, 48, 0.12);
+  --bobr-green-a40: rgba(51, 82, 48, 0.4);
+
+  /* --- Semantic roles -----------------------------------------------------
+     Components reference THESE, never the palette above, so a palette change
+     does not mean auditing every usage. */
+  --bobr-bg: var(--bobr-cream-200);
+  --bobr-bg-alt: var(--bobr-cream-300);
+  --bobr-surface: var(--bobr-cream-100);
+  --bobr-border: var(--bobr-green-a12);
+  --bobr-border-accent: var(--bobr-orange-500);
+  --bobr-fg: var(--bobr-green-700);
+  --bobr-fg-strong: var(--bobr-green-900);
+  --bobr-fg-muted: var(--bobr-green-300);
+  --bobr-accent: var(--bobr-orange-500);
+  --bobr-accent-hover: var(--bobr-orange-600);
+  --bobr-on-dark: var(--bobr-cream-200);
+  --bobr-danger: #c0442f;
+
+  /* --- Type ---------------------------------------------------------------
+     One family (Jost), loaded via next/font in app/[locale]/layout.tsx.
+     Measured ramp: 45 / 40 / 34 / 22 / 21 / 18 / 17 / 13.
+     Headings run 1.1-1.2 line-height, body 1.4 — that ratio split is what
+     makes the display type feel tight and the copy stay readable. */
+  --bobr-font: var(--font-jost), 'Jost', ui-sans-serif, system-ui, sans-serif;
+
+  --bobr-text-display: clamp(2.25rem, 1.4rem + 3.2vw, 2.8125rem); /* ->45px */
+  --bobr-text-h2:      clamp(2rem, 1.35rem + 2.4vw, 2.5rem);      /* ->40px */
+  --bobr-text-h3:      clamp(1.65rem, 1.25rem + 1.5vw, 2.125rem); /* ->34px */
+  --bobr-text-h4:      1.375rem;  /* 22px */
+  --bobr-text-lead:    1.3125rem; /* 21px */
+  --bobr-text-body:    1.125rem;  /* 18px */
+  --bobr-text-sm:      1.0625rem; /* 17px */
+  --bobr-text-xs:      0.8125rem; /* 13px */
+
+  --bobr-lh-tight: 1.1;
+  --bobr-lh-heading: 1.2;
+  --bobr-lh-body: 1.4;
+
+  --bobr-weight-regular: 400;
+  --bobr-weight-medium: 500;
+  --bobr-weight-semibold: 600;
+  --bobr-weight-bold: 700;
+
+  /* --- Radii --------------------------------------------------------------
+     Measured set: 4px controls, 20px cards, 100px pills, and one very large
+     value for the half-round hero image. */
+  --bobr-radius-control: 4px;
+  --bobr-radius-sm: 10px;
+  --bobr-radius: 20px;
+  --bobr-radius-lg: 40px;
+  --bobr-radius-pill: 100px;
+  --bobr-radius-half: 450px;
+
+  /* --- Spacing ------------------------------------------------------------ */
+  --bobr-gutter: clamp(1.25rem, 0.5rem + 3vw, 5.5rem);
+  --bobr-max-width: 1280px;
+  --bobr-section-y: clamp(4rem, 2rem + 7vw, 7.5rem);
+
+  /* --- Motion -------------------------------------------------------------
+     `--bobr-ease` is the reference's own transition curve, measured as
+     cubic-bezier(0.44, 0, 0.56, 1) — a symmetric ease-in-out. `--bobr-ease-out`
+     is the decelerating curve used for entrances, where motion should arrive
+     and settle rather than accelerate away. */
+  --bobr-ease: cubic-bezier(0.44, 0, 0.56, 1);
+  --bobr-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --bobr-duration-fast: 0.25s;
+  --bobr-duration: 0.4s;   /* measured hover duration */
+  --bobr-duration-slow: 0.8s;
+
+  /* Entrance travel distances, measured from the reference's reveal
+     transforms: 30px for cards and list items, 60px for whole blocks. */
+  --bobr-reveal-sm: 30px;
+  --bobr-reveal-lg: 60px;
+
+  --bobr-shadow-sm: 0 1px 2px rgba(30, 58, 28, 0.06);
+  --bobr-shadow: 0 10px 30px rgba(30, 58, 28, 0.08);
+}
+
+/* Motion is decoration. Anyone who has asked the OS to stop it gets a page that
+   is complete and static, not one that is missing content because a reveal
+   never fired — the reveal components check this too, in JS. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --bobr-duration-fast: 0ms;
+    --bobr-duration: 0ms;
+    --bobr-duration-slow: 0ms;
+    --bobr-reveal-sm: 0px;
+    --bobr-reveal-lg: 0px;
+  }
+}

@@ -1,0 +1,184 @@
+@import 'tailwindcss';
+@import '../styles/bobr-tokens.css';
+
+html {
+  /* Lenis drives scrolling; native smooth would fight it. */
+  scroll-behavior: auto;
+  /* Light-only design. Without this a dark-mode OS paints a dark canvas before
+     our CSS lands, which reads as a flash between pages. */
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bobr-bg);
+  color: var(--bobr-fg);
+  font-family: var(--bobr-font);
+  font-size: var(--bobr-text-body);
+  line-height: var(--bobr-lh-body);
+  /* `clip`, not `hidden`: overflow:hidden makes this a scroll container, which
+     silently kills position:sticky on every descendant AND breaks Lenis.
+     `clip` paints nothing outside the box and creates no scroll container. */
+  overflow-x: clip;
+}
+
+* { box-sizing: border-box; }
+
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: var(--bobr-weight-regular); }
+p { margin: 0; }
+
+/* --- Lenis ----------------------------------------------------------------
+   Lenis ships these rules itself, but it injects them at runtime — which means
+   a flash of native scrolling before hydration. Declaring them here removes
+   that window. */
+html.lenis,
+html.lenis body { height: auto; }
+
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }
+
+/* --- Type primitives ------------------------------------------------------
+   The reference sets headings in uppercase at a tight 1.1-1.2 line-height and
+   leans on weight (400 vs 700) rather than size for emphasis inside a single
+   heading. `.bobr-em` is that emphasis. */
+.bobr-display {
+  font-size: var(--bobr-text-display);
+  line-height: var(--bobr-lh-tight);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--bobr-fg);
+}
+
+.bobr-h2 {
+  font-size: var(--bobr-text-h2);
+  line-height: var(--bobr-lh-tight);
+  text-transform: uppercase;
+  color: var(--bobr-fg);
+}
+
+.bobr-h3 {
+  font-size: var(--bobr-text-h3);
+  line-height: var(--bobr-lh-heading);
+  color: var(--bobr-fg);
+}
+
+.bobr-h4 {
+  font-size: var(--bobr-text-h4);
+  line-height: var(--bobr-lh-heading);
+  font-weight: var(--bobr-weight-semibold);
+  color: var(--bobr-fg);
+}
+
+/* The recurring heading move: same size, heavier weight, accent colour. */
+.bobr-em {
+  font-weight: var(--bobr-weight-bold);
+  color: var(--bobr-accent);
+}
+.bobr-em-green {
+  font-weight: var(--bobr-weight-bold);
+  color: var(--bobr-fg);
+}
+
+.bobr-body { color: var(--bobr-fg-muted); line-height: var(--bobr-lh-body); }
+
+.bobr-shell {
+  width: 100%;
+  max-width: var(--bobr-max-width);
+  margin-inline: auto;
+  padding-inline: var(--bobr-gutter);
+}
+
+/* --- Marquee --------------------------------------------------------------
+   Two identical tracks translating -50% in lockstep: when the first has fully
+   left, the second is exactly where the first started, so the loop is seamless
+   with no JS and no measurement. Paused on hover so a visitor can actually read
+   a card they are pointing at. */
+@keyframes bobr-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+.bobr-marquee { display: flex; width: max-content; will-change: transform; }
+.bobr-marquee[data-play='true'] {
+  animation: bobr-marquee var(--bobr-marquee-duration, 40s) linear infinite;
+}
+.bobr-marquee[data-reverse='true'] { animation-direction: reverse; }
+.bobr-marquee-viewport:hover .bobr-marquee { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bobr-marquee[data-play='true'] { animation: none; }
+}
+
+/* Respect focus for keyboard users even inside decorated controls. */
+:focus-visible {
+  outline: 2px solid var(--bobr-accent);
+  outline-offset: 3px;
+  border-radius: var(--bobr-radius-control);
+}
+
+/* --- Button press ---------------------------------------------------------
+   The face slides into the offset block and the block retreats to meet it, so
+   the control reads as pressed. Transform only — the hit area never moves. */
+.bobr-btn:hover .bobr-btn-face,
+.bobr-btn:focus-visible .bobr-btn-face {
+  transform: translate3d(3px, 3px, 0);
+}
+.bobr-btn:hover .bobr-btn-offset,
+.bobr-btn:focus-visible .bobr-btn-offset {
+  transform: translate3d(0, 0, 0);
+}
+.bobr-btn:active .bobr-btn-face {
+  transform: translate3d(6px, 6px, 0);
+}
+
+/* --- Link underline -------------------------------------------------------
+   Grows from the left rather than fading in, so the motion has a direction.
+   scaleX on a pseudo-element stays on the compositor; animating `width` would
+   force layout on every frame of the transition. */
+.bobr-navlink {
+  position: relative;
+  color: var(--bobr-fg);
+  text-decoration: none;
+  transition: color var(--bobr-duration) var(--bobr-ease);
+}
+.bobr-navlink::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 2px;
+  background: var(--bobr-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--bobr-duration) var(--bobr-ease);
+}
+.bobr-navlink:hover,
+.bobr-navlink[data-active='true'] { color: var(--bobr-accent); }
+.bobr-navlink:hover::after,
+.bobr-navlink[data-active='true']::after { transform: scaleX(1); }
+
+/* --- Card hover -----------------------------------------------------------
+   A small rise plus a shadow. The image inside scales slightly MORE than the
+   card so it fills the frame as it lifts; overflow:hidden on the frame is what
+   keeps that from spilling. */
+.bobr-card {
+  transition: transform var(--bobr-duration) var(--bobr-ease),
+              box-shadow var(--bobr-duration) var(--bobr-ease);
+}
+.bobr-card:hover { transform: translateY(-6px); box-shadow: var(--bobr-shadow); }
+.bobr-card__media { overflow: hidden; border-radius: var(--bobr-radius); }
+.bobr-card__media > * {
+  transition: transform var(--bobr-duration-slow) var(--bobr-ease-out);
+}
+.bobr-card:hover .bobr-card__media > * { transform: scale(1.05); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bobr-card:hover { transform: none; }
+  .bobr-card:hover .bobr-card__media > * { transform: none; }
+}
