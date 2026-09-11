@@ -104,6 +104,10 @@
      reference's reveal transitions, and it is what makes an entrance read as
      deliberate rather than as something snapping into place. */
   --bobr-ease-reveal: cubic-bezier(0.44, 0, 0.56, 1);
+  /* Stands in for the reference's spring (stiffness 120, damping 60, mass 1).
+     That is a damping ratio near 2.7 — overdamped, so it decelerates onto its
+     resting place without ever overshooting, which this curve reproduces. */
+  --bobr-ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
 
   --bobr-duration-fast: 0.25s;
   --bobr-duration: 0.4s;   /* measured hover duration */

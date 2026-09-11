@@ -323,34 +323,6 @@ html.lenis body { height: auto; }
 .bobr-slider-btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.4); }
 .bobr-slider-btn:disabled { opacity: 0.35; cursor: default; }
 
-/* --- Hero plate -----------------------------------------------------------
-   A very slow continuous rotation. 48s is deliberately past the point of being
-   watchable: it should register as the plate being alive, never as spinning.
-   Paired with the scroll parallax it gives the hero two independent motions at
-   different rates, which is what stops it reading as a flat pasted cutout. */
-@keyframes bobr-plate-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.bobr-plate-spin {
-  animation: bobr-plate-spin 48s linear infinite;
-  transform-origin: 50% 50%;
-  will-change: transform;
-}
-
-/* The decorative ring counter-rotates, so the two layers shear against each
-   other rather than moving as one rigid object. */
-.bobr-plate-ring {
-  animation: bobr-plate-spin 72s linear infinite reverse;
-  transform-origin: 50% 50%;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bobr-plate-spin,
-  .bobr-plate-ring { animation: none; will-change: auto; }
-}
-
 /* --- Counter value --------------------------------------------------------
    30px / 700, matching the measured badge. Sits on its own class rather than
    inline so the tabular-figure rule in Counter.tsx and the size live in one

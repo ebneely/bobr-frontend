@@ -1,20 +1,17 @@
 import { getTranslations } from 'next-intl/server';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { Marquee } from '@/components/motion/Marquee';
+import { Slider } from '@/components/ui/Slider';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
 
 /**
- * The four diet types, running as an infinite ticker.
+ * The four diet types as a carousel.
  *
- * A marquee rather than a static grid because there are only four items: a grid
- * of four leaves a lot of empty band, where a moving track fills the full width
- * at any viewport and hints there is more to browse. It pauses on hover so a
- * card can actually be read.
- *
- * The list is duplicated inside Marquee to close the loop, and the second copy
- * is aria-hidden, so assistive tech hears four diets rather than eight.
+ * A carousel rather than the ticker that used to be here: these are the things
+ * a visitor is choosing between, so they have to be able to stop on one and
+ * read it. A track that never stops is fine for atmosphere and wrong for a
+ * decision — the ticker moved to TickerBand, where it carries no choice.
  */
-export async function DietsMarquee() {
+export async function DietsCarousel() {
   const t = await getTranslations('diets');
 
   const diets = [
@@ -38,13 +35,16 @@ export async function DietsMarquee() {
         />
       </div>
 
-      <Marquee>
+      {/* Full-bleed: the Slider supplies its own gutter as scroll padding, so
+          the track can run to the viewport edge and the next card peeks in,
+          which is what tells a visitor there is more to scroll. */}
+      <Slider label={t('eyebrow')}>
         {diets.map((diet) => (
           <article
             key={diet.key}
             className="bobr-card"
             style={{
-              width: 'min(var(--bobr-ticker-item), 82vw)',
+              height: '100%',
               background: 'var(--bobr-surface)',
               border: '1px solid var(--bobr-border)',
               borderRadius: 'var(--bobr-radius)',
@@ -68,7 +68,7 @@ export async function DietsMarquee() {
             </div>
           </article>
         ))}
-      </Marquee>
+      </Slider>
     </section>
   );
 }

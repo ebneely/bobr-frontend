@@ -3,7 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { SiteHeader } from '@/components/sections/SiteHeader';
 import { Hero } from '@/components/sections/Hero';
 import { ValueProps } from '@/components/sections/ValueProps';
-import { DietsMarquee } from '@/components/sections/DietsMarquee';
+import { DietsCarousel } from '@/components/sections/DietsCarousel';
+import { TickerBand } from '@/components/sections/TickerBand';
 import { Steps } from '@/components/sections/Steps';
 import { PricingLadder } from '@/components/sections/PricingLadder';
 import { CtaBand } from '@/components/sections/CtaBand';
@@ -31,7 +32,8 @@ export default async function HomePage({
       <main>
         <Hero />
         <ValueProps />
-        <DietsMarquee />
+        <DietsCarousel />
+        <TickerBand />
         <Steps />
         <PricingLadder />
         <CtaBand />
