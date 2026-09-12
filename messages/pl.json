@@ -11,9 +11,7 @@
     "loading": "Ładowanie…",
     "language": "Język",
     "switchToPl": "Przełącz na polski",
-    "switchToEn": "Przełącz na angielski",
-    "flagPl": "Flaga Polski",
-    "flagEn": "Flaga Anglii"
+    "switchToEn": "Przełącz na angielski"
   },
   "nav": {
     "home": "Start",

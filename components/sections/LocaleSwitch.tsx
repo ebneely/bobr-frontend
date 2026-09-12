@@ -47,7 +47,7 @@ export function LocaleSwitch({ className }: { className?: string }) {
       {/* 44px hit area, 26px flag. The target stays finger-sized while the
           glyph stays the size the design wants — shrinking the box to fit the
           artwork is how a control becomes hard to tap. */}
-      {target === 'pl' ? <PolishFlag /> : <EnglishFlag />}
+      {target === 'pl' ? <PolishFlag /> : <BritishFlag />}
     </Link>
   );
 }
@@ -81,7 +81,20 @@ function PolishFlag() {
   );
 }
 
-function EnglishFlag() {
+/**
+ * The Union Flag, for English.
+ *
+ * Drawn as strokes rather than filled paths so the layering reads at 18px:
+ * blue field, white saltire, red saltire, then the white-bordered red cross
+ * over the top. The real flag counterchanges the red saltire — offsetting it
+ * either side of the diagonal — which is invisible at this size and would cost
+ * a dozen clip paths to express.
+ *
+ * Squared to the same 26x18 box as the Polish flag. The true ratio is 1:2, so
+ * this is slightly tall, but matching icon boxes reads better in a header than
+ * two flags of different heights.
+ */
+function BritishFlag() {
   return (
     <svg
       width={FLAG_W}
@@ -91,12 +104,13 @@ function EnglishFlag() {
       role="presentation"
       aria-hidden
     >
-      <rect width="26" height="18" fill="#ffffff" />
-      {/* St George's cross — the flag of England, which is what "English" asks
-          for. The Union Flag is the United Kingdom's and would be the wrong
-          answer to the question this control poses. */}
-      <rect x="10" width="6" height="18" fill="#ce1124" />
-      <rect y="6" width="26" height="6" fill="#ce1124" />
+      <rect width="26" height="18" fill="#012169" />
+      <g strokeLinecap="butt">
+        <path d="M0 0 L26 18 M26 0 L0 18" stroke="#ffffff" strokeWidth="4.2" />
+        <path d="M0 0 L26 18 M26 0 L0 18" stroke="#c8102e" strokeWidth="1.7" />
+        <path d="M13 0 V18 M0 9 H26" stroke="#ffffff" strokeWidth="6" />
+        <path d="M13 0 V18 M0 9 H26" stroke="#c8102e" strokeWidth="3.6" />
+      </g>
     </svg>
   );
 }

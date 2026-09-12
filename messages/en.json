@@ -11,9 +11,7 @@
     "loading": "Loading…",
     "language": "Language",
     "switchToPl": "Switch to Polish",
-    "switchToEn": "Switch to English",
-    "flagPl": "Flag of Poland",
-    "flagEn": "Flag of England"
+    "switchToEn": "Switch to English"
   },
   "nav": {
     "home": "Home",
