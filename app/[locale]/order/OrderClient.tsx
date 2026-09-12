@@ -220,7 +220,13 @@ export function OrderClient() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(6.5rem, 1fr))',
+            // 6.5rem was narrower than a Polish day label ("niedz., 20 wrz"),
+            // so every cell wrapped to two lines and the rows went ragged.
+            // The track is now wide enough for the longest label the pl-PL
+            // formatter produces, and `min(100%, …)` keeps the grid from
+            // overflowing a 390px viewport, where it simply drops to one
+            // column instead of forcing a horizontal scrollbar.
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 9rem), 1fr))',
             gap: '0.5rem',
           }}
         >
@@ -237,6 +243,13 @@ export function OrderClient() {
                   cursor: 'pointer',
                   fontSize: 'var(--bobr-text-sm)',
                   textAlign: 'center',
+                  // One line, always. Belt to the widened track's braces: if a
+                  // locale ever produces a longer label than we sized for, the
+                  // cell clips rather than silently growing taller than its
+                  // neighbours and re-ragging the whole grid.
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                   borderRadius: 'var(--bobr-radius-control)',
                   border: `1px solid ${on ? 'transparent' : 'var(--bobr-border)'}`,
                   background: on ? 'var(--bobr-fg)' : 'var(--bobr-surface)',
