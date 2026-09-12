@@ -9,7 +9,11 @@
     "save": "Zapisz",
     "cancel": "Anuluj",
     "loading": "Ładowanie…",
-    "language": "Język"
+    "language": "Język",
+    "switchToPl": "Przełącz na polski",
+    "switchToEn": "Przełącz na angielski",
+    "flagPl": "Flaga Polski",
+    "flagEn": "Flaga Anglii"
   },
   "nav": {
     "home": "Start",

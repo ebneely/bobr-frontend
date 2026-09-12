@@ -9,7 +9,11 @@
     "save": "Save",
     "cancel": "Cancel",
     "loading": "Loading…",
-    "language": "Language"
+    "language": "Language",
+    "switchToPl": "Switch to Polish",
+    "switchToEn": "Switch to English",
+    "flagPl": "Flag of Poland",
+    "flagEn": "Flag of England"
   },
   "nav": {
     "home": "Home",

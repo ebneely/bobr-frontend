@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
 import { useScrolled } from '@/lib/motion/use-scrolled';
+import { LocaleSwitch } from './LocaleSwitch';
 import { AccountNav } from './AccountNav';
 import { getLenis } from '@/components/motion/SmoothScroll';
 
@@ -17,7 +18,6 @@ import { getLenis } from '@/components/motion/SmoothScroll';
 export function SiteHeader() {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
-  const locale = useLocale();
   const pathname = usePathname();
   const stuck = useScrolled(24);
 
@@ -136,14 +136,27 @@ export function SiteHeader() {
             className="bobr-nav-desktop"
             style={{ alignItems: 'center', gap: '1.25rem' }}
           >
-            <LocaleLink locale={locale} />
             <AccountNav />
           </div>
 
-          <button
-            ref={toggleRef}
-            type="button"
-            className="bobr-nav-toggle"
+          {/* Outside both navs and outside the drawer, so it is reachable at
+              every width. Language is not a navigation choice, and a Polish
+              speaker who lands on the English page should not have to open a
+              menu written in English to get back. */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              flexShrink: 0,
+            }}
+          >
+            <LocaleSwitch />
+
+            <button
+              ref={toggleRef}
+              type="button"
+              className="bobr-nav-toggle"
             aria-expanded={open}
             aria-controls={drawerId}
             aria-label={open ? t('menuClose') : t('menuOpen')}
@@ -159,12 +172,13 @@ export function SiteHeader() {
               cursor: 'pointer',
             }}
           >
-            <span className="bobr-burger" aria-hidden>
-              <span />
-              <span />
-              <span />
-            </span>
-          </button>
+              <span className="bobr-burger" aria-hidden>
+                <span />
+                <span />
+                <span />
+              </span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -218,33 +232,12 @@ export function SiteHeader() {
               borderTop: '1px solid var(--bobr-border)',
             }}
           >
+            {/* No language switch here — it lives in the header bar at every
+                width now, so it is not buried in a drawer. */}
             <AccountNav tabIndex={open ? undefined : -1} />
-            <LocaleLink locale={locale} tabIndex={open ? undefined : -1} />
           </div>
         </nav>
       </div>
     </>
-  );
-}
-
-/**
- * Switches locale for the SAME route. An href of "/en" would be prefixed with
- * the active locale and produce /pl/en.
- */
-function LocaleLink({ locale, tabIndex }: { locale: string; tabIndex?: number }) {
-  return (
-    <Link
-      href="/"
-      locale={locale === 'pl' ? 'en' : 'pl'}
-      className="bobr-navlink"
-      tabIndex={tabIndex}
-      style={{
-        fontSize: 'var(--bobr-text-sm)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-      }}
-    >
-      {locale === 'pl' ? 'EN' : 'PL'}
-    </Link>
   );
 }
