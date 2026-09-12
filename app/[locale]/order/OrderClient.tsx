@@ -72,6 +72,12 @@ export function OrderClient() {
     return out;
   }, [locale]);
 
+  // Every card gets a frame as soon as ANY meal has a photo, so a catalogue
+  // that is only half photographed does not render as a row of cards at two
+  // different heights. Derived during render rather than mirrored into
+  // state, which is a copy that can disagree with what it came from.
+  const anyPhoto = meals.some((m) => m.imageUrl);
+
   const tooFewDays = mode === 'CALENDAR' && days.size < MIN_CALENDAR_DAYS;
   const canPlace = Boolean(mealId) && days.size > 0 && !tooFewDays && !busy;
 
@@ -165,6 +171,8 @@ export function OrderClient() {
               onSelect={() => setMealId(meal.id)}
               title={locale === 'pl' ? meal.namePl : meal.nameEn}
               note={formatGrosze(meal.priceGrosze, locale)}
+              imageUrl={meal.imageUrl}
+              showFrame={anyPhoto}
             />
           ))}
         </div>
@@ -340,12 +348,16 @@ function Choice({
   onSelect,
   title,
   note,
+  imageUrl,
+  showFrame = false,
 }: {
   name: string;
   checked: boolean;
   onSelect: () => void;
   title: string;
   note: string;
+  imageUrl?: string | null;
+  showFrame?: boolean;
 }) {
   return (
     <label
@@ -374,6 +386,41 @@ function Choice({
           pointerEvents: 'none',
         }}
       />
+      {showFrame && (
+        <div
+          style={{
+            aspectRatio: '4 / 3',
+            // Without this the frame can outgrow a narrow column and push the
+            // whole grid into a horizontal scroll at 390px.
+            maxWidth: '100%',
+            marginBottom: '0.5rem',
+            borderRadius: 'var(--bobr-radius-sm)',
+            overflow: 'hidden',
+            background: 'var(--bobr-bg-alt)',
+          }}
+        >
+          {imageUrl && (
+            // A plain <img>, not next/image: the photo is served by the API on
+            // another origin, which next/image would need told about in
+            // remotePatterns, and it needs no optimising — the API stores webp
+            // already. alt="" because the name sits directly underneath, so
+            // announcing it twice is noise.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          )}
+        </div>
+      )}
       <span style={{ fontWeight: 'var(--bobr-weight-semibold)' }}>{title}</span>
       <span
         style={{

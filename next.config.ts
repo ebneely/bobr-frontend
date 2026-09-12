@@ -19,6 +19,29 @@ const isProd = process.env.NODE_ENV === 'production';
  */
 const httpsEnabled = process.env.HTTPS_ENABLED === 'true';
 
+/**
+ * The API origin, as a CSP source.
+ *
+ * Meal photos are served BY THE API, not by this app. `img-src 'self'` does not
+ * cover another origin, and the blanket `https:` below does not cover an
+ * http-only backend — which is exactly the deployment this project targets. The
+ * failure is silent: the browser blocks the request, the card renders without a
+ * picture, and nothing but the console says why.
+ *
+ * Derived from the variable the client actually fetches from, so the allowance
+ * cannot drift from the origin in use.
+ */
+const apiOrigin = (() => {
+  const raw = process.env.NEXT_PUBLIC_API_URL;
+  if (!raw) return null;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    // A malformed value must not take the whole config down at boot.
+    return null;
+  }
+})();
+
 // script-src still allows 'unsafe-inline' because the App Router injects inline
 // hydration scripts. Dev adds 'unsafe-eval' + ws/http so HMR keeps working.
 const contentSecurityPolicy = [
@@ -29,7 +52,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  `img-src 'self' data: blob: https:${apiOrigin ? ` ${apiOrigin}` : ''}`,
   "font-src 'self' data:",
   // http: stays allowed whenever HTTPS is not in play — the API lives on
   // another subdomain, and over plain http every call to it is 'http:'.
