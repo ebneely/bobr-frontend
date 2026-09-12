@@ -20,7 +20,30 @@
     "cta": "Rozpocznij",
     "menuOpen": "Otwórz menu",
     "menuClose": "Zamknij menu",
-    "primary": "Nawigacja główna"
+    "primary": "Nawigacja główna",
+    "dashboard": "Panel"
+  },
+  "auth": {
+    "loginTitle": "Zaloguj się",
+    "loginLead": "Witamy",
+    "loginEm": "z powrotem",
+    "loginSubtitle": "Zaloguj się, żeby zobaczyć swoją dietę i zamówienia.",
+    "registerTitle": "Załóż konto",
+    "registerLead": "Zacznij",
+    "registerEm": "od profilu",
+    "registerSubtitle": "Konto jest potrzebne, żeby ułożyć dietę dopasowaną do Ciebie.",
+    "email": "Adres e-mail",
+    "password": "Hasło",
+    "fullName": "Imię i nazwisko",
+    "submitLogin": "Zaloguj się",
+    "submitRegister": "Załóż konto",
+    "noAccount": "Nie masz konta?",
+    "hasAccount": "Masz już konto?",
+    "passwordHint": "Minimum 8 znaków.",
+    "errorInvalid": "Nieprawidłowy e-mail lub hasło.",
+    "errorTaken": "Konto z tym adresem już istnieje.",
+    "errorGeneric": "Nie udało się. Spróbuj ponownie.",
+    "working": "Chwileczkę…"
   },
   "home": {
     "eyebrow": "Catering dietetyczny",

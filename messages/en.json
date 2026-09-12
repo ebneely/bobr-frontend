@@ -20,7 +20,30 @@
     "cta": "Get started",
     "menuOpen": "Open menu",
     "menuClose": "Close menu",
-    "primary": "Main navigation"
+    "primary": "Main navigation",
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "loginLead": "Welcome",
+    "loginEm": "back",
+    "loginSubtitle": "Sign in to see your diet and your orders.",
+    "registerTitle": "Create account",
+    "registerLead": "Start with",
+    "registerEm": "your profile",
+    "registerSubtitle": "An account is what lets us build a diet around you.",
+    "email": "Email address",
+    "password": "Password",
+    "fullName": "Full name",
+    "submitLogin": "Log in",
+    "submitRegister": "Create account",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "passwordHint": "At least 8 characters.",
+    "errorInvalid": "Wrong email or password.",
+    "errorTaken": "An account with that address already exists.",
+    "errorGeneric": "That did not work. Please try again.",
+    "working": "One moment…"
   },
   "home": {
     "eyebrow": "Diet catering",
