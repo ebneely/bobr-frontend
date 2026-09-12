@@ -11,9 +11,9 @@ import { Link, usePathname } from '@/lib/i18n/navigation';
  * Polish speaker who landed on the English page should not have to open a menu
  * they cannot read in order to fix that.
  *
- * It shows the flag of the language you would switch TO, not the one you are
- * already reading — the control is an action, and showing the current state
- * makes people click it to confirm rather than to change.
+ * It shows the flag AND the code of the language you would switch TO, not the
+ * one you are already reading — the control is an action, and showing the
+ * current state makes people click it to confirm rather than to change.
  */
 export function LocaleSwitch({ className }: { className?: string }) {
   const t = useTranslations('common');
@@ -36,8 +36,12 @@ export function LocaleSwitch({ className }: { className?: string }) {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 44,
+        gap: '0.4rem',
+        // The box grows with the code beside the flag, but never below the
+        // 44px finger target — `width` would have clipped the text instead.
+        minWidth: 44,
         height: 44,
+        padding: '0 0.5rem',
         flexShrink: 0,
         borderRadius: 'var(--bobr-radius-control)',
         textDecoration: 'none',
@@ -48,6 +52,23 @@ export function LocaleSwitch({ className }: { className?: string }) {
           glyph stays the size the design wants — shrinking the box to fit the
           artwork is how a control becomes hard to tap. */}
       {target === 'pl' ? <PolishFlag /> : <BritishFlag />}
+
+      {/* The code names the language the flag stands for, which a flag alone
+          does not: the Union Flag is a country, not "English". It is decorative
+          to a screen reader — the link's aria-label already says the whole
+          thing, and announcing "EN" after it would just be noise. */}
+      <span
+        aria-hidden
+        style={{
+          fontSize: 'var(--bobr-text-xs)',
+          fontWeight: 'var(--bobr-weight-semibold)',
+          letterSpacing: '0.04em',
+          lineHeight: 1,
+          color: 'var(--bobr-fg)',
+        }}
+      >
+        {target === 'pl' ? 'PL' : 'EN'}
+      </span>
     </Link>
   );
 }

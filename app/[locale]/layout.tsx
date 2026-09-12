@@ -24,7 +24,7 @@ const jost = Jost({
 export const metadata: Metadata = {
   title: 'BOBR',
   description:
-    'Catering dietetyczny z dostawą — keto, bezglutenowa, dla alergików.',
+    'Katering dietetyczny z dostawą — keto, bezglutenowa, dla alergików.',
 };
 
 export function generateStaticParams() {
