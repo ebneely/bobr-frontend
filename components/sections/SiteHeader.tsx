@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
 import { useScrolled } from '@/lib/motion/use-scrolled';
+import { AccountNav } from './AccountNav';
 import { getLenis } from '@/components/motion/SmoothScroll';
 
 /**
@@ -136,13 +137,7 @@ export function SiteHeader() {
             style={{ alignItems: 'center', gap: '1.25rem' }}
           >
             <LocaleLink locale={locale} />
-            <Link
-              href="/login"
-              className="bobr-navlink"
-              style={{ fontSize: 'var(--bobr-text-body)', whiteSpace: 'nowrap' }}
-            >
-              {tc('login')}
-            </Link>
+            <AccountNav />
           </div>
 
           <button
@@ -223,15 +218,7 @@ export function SiteHeader() {
               borderTop: '1px solid var(--bobr-border)',
             }}
           >
-            <Link
-              href="/login"
-              className="bobr-navlink"
-              style={{ fontSize: 'var(--bobr-text-lead)' }}
-              tabIndex={open ? undefined : -1}
-              onClick={() => setOpen(false)}
-            >
-              {tc('login')}
-            </Link>
+            <AccountNav tabIndex={open ? undefined : -1} />
             <LocaleLink locale={locale} tabIndex={open ? undefined : -1} />
           </div>
         </nav>
