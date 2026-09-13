@@ -316,6 +316,25 @@ try {
   });
 
   // ---- 14. the admin sees the order and the complaint, and answers --------
+  // The ORDER first, in the dashboard's own orders page. Until this step the
+  // goal's "an admin can see that order" was only ever proven through the API.
+  // Asserted on visible text — this customer's email and this order's total on
+  // the same row — so it does not depend on the page's markup.
+  await admin.goto(`${DASH}/pl/dashboard/orders`, { waitUntil: 'domcontentloaded' });
+  await admin.waitForTimeout(3500);
+  const expectedTotal = (EXPECTED_TOTAL_GROSZE / 100).toFixed(2).replace('.', ',');
+  const orderRow = admin
+    .locator('tr, li, article')
+    .filter({ hasText: EMAIL })
+    .filter({ hasText: expectedTotal });
+  const adminSeesOrder = await orderRow.count();
+  await shot(admin, '20a-admin-sees-order');
+  record('14a admin sees the order in the dashboard', adminSeesOrder > 0, {
+    email: EMAIL,
+    total: expectedTotal,
+    matchingRows: adminSeesOrder,
+  });
+
   await admin.goto(`${DASH}/pl/dashboard/notes`, { waitUntil: 'domcontentloaded' });
   await admin.waitForTimeout(3500);
   const adminSees = await admin.getByText(COMPLAINT).count();
@@ -327,7 +346,7 @@ try {
   await noteItem.getByRole('button').last().click();
   await admin.waitForTimeout(3500);
   await shot(admin, '21-admin-answered');
-  record('14a admin sees the complaint and answers it', adminSees > 0, {
+  record('14b admin sees the complaint and answers it', adminSees > 0, {
     visibleToAdmin: adminSees,
   });
 
@@ -336,7 +355,7 @@ try {
   await page.waitForTimeout(3500);
   const customerSeesReply = await page.getByText(REPLY).count();
   await shot(page, '22-customer-reads-reply');
-  record('14b the customer can read the reply', customerSeesReply > 0, {
+  record('14c the customer can read the reply', customerSeesReply > 0, {
     replyVisible: customerSeesReply,
   });
 
