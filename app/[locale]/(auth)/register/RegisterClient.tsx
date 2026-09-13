@@ -11,7 +11,7 @@ import { DASHBOARD_URL } from '@/lib/auth/urls';
 
 const MIN_PASSWORD = 8;
 
-export function RegisterClient() {
+export function RegisterClient({ next }: { next: string | null }) {
   const t = useTranslations('auth');
 
   const [fullName, setFullName] = useState('');
@@ -63,7 +63,9 @@ export function RegisterClient() {
 
     // autoSignIn is on, so the session cookie is already set. Full navigation,
     // because the dashboard is a different origin with its own server render.
-    window.location.assign(DASHBOARD_URL);
+    // Back to the page that sent them here when there is one; `next` is
+    // validated as a local path on the server before it arrives.
+    window.location.assign(next ?? DASHBOARD_URL);
   }
 
   return (
@@ -125,7 +127,10 @@ export function RegisterClient() {
         }}
       >
         {t('hasAccount')}{' '}
-        <Link href="/login" className="bobr-navlink">
+        <Link
+          href={next ? { pathname: '/login', query: { next } } : '/login'}
+          className="bobr-navlink"
+        >
           {t('submitLogin')}
         </Link>
       </p>
