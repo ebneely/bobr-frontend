@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "BOBR",
+    "description": "Diet catering, delivered — keto, gluten-free, and for allergies."
+  },
   "common": {
     "appName": "BOBR",
     "login": "Log in",

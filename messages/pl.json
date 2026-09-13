@@ -1,4 +1,8 @@
 {
+  "meta": {
+    "title": "BOBR",
+    "description": "Katering dietetyczny z dostawą — keto, bezglutenowa, dla alergików."
+  },
   "common": {
     "appName": "BOBR",
     "login": "Zaloguj się",
