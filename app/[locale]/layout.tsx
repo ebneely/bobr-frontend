@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Jost } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { routing } from '@/lib/i18n/routing';
 import { QueryProvider } from '@/lib/hooks/query-provider';
@@ -21,11 +21,17 @@ const jost = Jost({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'BOBR',
-  description:
-    'Katering dietetyczny z dostawą — keto, bezglutenowa, dla alergików.',
-};
+// Per locale, not a static export: a static `metadata` served the Polish
+// description on /en as well.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'meta' });
+  return { title: t('title'), description: t('description') };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
