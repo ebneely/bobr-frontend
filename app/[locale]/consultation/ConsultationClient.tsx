@@ -371,6 +371,11 @@ function BlikInstructions({
       }}
     >
       <h3 className="bobr-h4">{phone ? t('blikTitle') : t('paymentTitle')}</h3>
+      {phone ? (
+        <p className="bobr-body" data-testid="blik-steps" style={{ fontSize: 'var(--bobr-text-sm)' }}>
+          {t('blikSteps')}
+        </p>
+      ) : null}
       <p
         data-testid="blik-amount"
         style={{
