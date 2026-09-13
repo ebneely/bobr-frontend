@@ -1,17 +1,19 @@
 import { apiFetch } from './client';
 
 /**
- * Public settings. Mirrors `bobr_backend/src/settings/`.
+ * Settings the storefront reads. Mirrors `bobr_backend/src/settings/`.
  *
- * Shipping is shown to the customer for information only — the server still
- * prices the order and freezes the shipping it charged on the order row.
+ * Delivery prices are no longer read from here — they come from the delivery
+ * zone the postal code resolves to (`lib/api/delivery-zones.ts`).
  */
 
-export interface ShippingSettings {
-  /** Integer grosze charged once on a ONE_TIME order. Calendar orders ship free. */
-  oneTimeShippingGrosze: number;
+export interface PaymentSettings {
+  /** Normalised `+48XXXXXXXXX`, or null until the admin enters one. */
+  blikPhone: string | null;
+  blikRecipientName: string | null;
 }
 
-export function apiGetShipping() {
-  return apiFetch<ShippingSettings>('/settings/shipping', { auth: false });
+/** Signed in, any role. */
+export function apiGetPaymentSettings() {
+  return apiFetch<PaymentSettings>('/settings/payment');
 }

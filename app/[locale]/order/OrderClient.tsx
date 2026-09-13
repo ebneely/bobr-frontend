@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/Button';
+import { Field } from '@/components/ui/Field';
 import { apiFetch, ApiError, formatApiError } from '@/lib/api/client';
+import { apiQuoteZone, type ZoneQuote } from '@/lib/api/delivery-zones';
 import { apiPlaceOrder, formatGrosze, type Order, type OrderMode } from '@/lib/api/orders';
-import { apiGetShipping } from '@/lib/api/settings';
 import { DASHBOARD_URL } from '@/lib/auth/urls';
 import {
   formatDayLabel,
@@ -14,6 +15,29 @@ import {
   groupByMonth,
   offeredDeliveryDays,
 } from '@/lib/dates';
+import {
+  ADDRESS_LINE_MAX,
+  CITY_MAX,
+  formatPostalCodeInput,
+  isCompletePostalCode,
+  validateAddress,
+  type AddressField,
+} from '@/lib/delivery';
+
+/**
+ * What the zone quote said about the postal code as typed. `idle` until the
+ * code is complete; the server is the only thing that knows the zones.
+ */
+type Quote =
+  | { state: 'idle' }
+  | { state: 'loading'; postalCode: string }
+  | { state: 'ok'; postalCode: string; zone: ZoneQuote }
+  | { state: 'notDelivered'; postalCode: string }
+  | { state: 'invalid'; postalCode: string }
+  | { state: 'failed'; postalCode: string };
+
+/** How long typing must pause before the quote is asked for. */
+const QUOTE_DEBOUNCE_MS = 350;
 
 interface Meal {
   id: string;
@@ -38,15 +62,43 @@ export function OrderClient() {
   const [error, setError] = useState<string | null>(null);
   const [placed, setPlaced] = useState<Order | null>(null);
   const [busy, setBusy] = useState(false);
-  /** One-time shipping in grosze, from the admin setting. Null until loaded. */
-  const [shipping, setShipping] = useState<number | null>(null);
-  const [shippingFailed, setShippingFailed] = useState(false);
+  const [addressLine, setAddressLine] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  /** Field errors are shown only after an attempt to place, not while typing. */
+  const [showAddressErrors, setShowAddressErrors] = useState(false);
+  const [quote, setQuote] = useState<Quote>({ state: 'idle' });
 
+  // Ask the server which zone a complete postal code falls in. Debounced, and
+  // a newer code aborts the older request so a slow answer cannot overwrite a
+  // fresh one.
   useEffect(() => {
-    apiGetShipping()
-      .then((s) => setShipping(s.oneTimeShippingGrosze))
-      .catch(() => setShippingFailed(true));
-  }, []);
+    if (!isCompletePostalCode(postalCode)) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setQuote({ state: 'loading', postalCode });
+      apiQuoteZone(postalCode, controller.signal)
+        .then((zone) => setQuote({ state: 'ok', postalCode, zone }))
+        .catch((e: unknown) => {
+          if (controller.signal.aborted) return;
+          if (e instanceof ApiError && e.status === 404) {
+            setQuote({ state: 'notDelivered', postalCode });
+          } else if (e instanceof ApiError && e.status === 422) {
+            setQuote({ state: 'invalid', postalCode });
+          } else {
+            setQuote({ state: 'failed', postalCode });
+          }
+        });
+    }, QUOTE_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [postalCode]);
+
+  // A quote only counts for the code it was asked about.
+  const currentQuote: Quote =
+    quote.state !== 'idle' && quote.postalCode === postalCode ? quote : { state: 'idle' };
 
   useEffect(() => {
     apiFetch<Meal[]>('/meals', { auth: false })
@@ -79,7 +131,38 @@ export function OrderClient() {
   const anyPhoto = meals.some((m) => m.imageUrl);
 
   const tooFewDays = mode === 'CALENDAR' && days.size < MIN_CALENDAR_DAYS;
+  const addressErrors = validateAddress({ addressLine, city, postalCode });
+  const notDelivered = currentQuote.state === 'notDelivered';
   const canPlace = Boolean(mealId) && days.size > 0 && !tooFewDays && !busy;
+
+  /**
+   * An address message under the button goes stale the moment the address is
+   * edited, so editing clears it; field errors re-derive on their own.
+   */
+  function clearAddressError() {
+    setError((current) =>
+      current === t('addressIncomplete') || current === t('zoneNotDelivered') ? null : current,
+    );
+  }
+
+  function addressError(field: AddressField): string | undefined {
+    if (field === 'postalCode') {
+      if (notDelivered) return t('zoneNotDelivered');
+      if (currentQuote.state === 'invalid') return t('postalCodeFormat');
+    }
+    if (!showAddressErrors) return undefined;
+    const problem = addressErrors[field];
+    if (!problem) return undefined;
+    if (field === 'postalCode') {
+      return problem === 'required' ? t('postalCodeRequired') : t('postalCodeFormat');
+    }
+    if (field === 'city') {
+      return problem === 'tooLong' ? t('cityTooLong', { max: CITY_MAX }) : t('cityRequired');
+    }
+    return problem === 'tooLong'
+      ? t('addressLineTooLong', { max: ADDRESS_LINE_MAX })
+      : t('addressLineRequired');
+  }
 
   /** Selects every offered day of a month, or clears them if all are selected. */
   function toggleMonth(isos: string[]) {
@@ -106,6 +189,15 @@ export function OrderClient() {
   async function place() {
     if (!mealId) return;
     setError(null);
+    if (Object.keys(addressErrors).length > 0) {
+      setShowAddressErrors(true);
+      setError(t('addressIncomplete'));
+      return;
+    }
+    if (notDelivered) {
+      setError(t('zoneNotDelivered'));
+      return;
+    }
     setBusy(true);
 
     try {
@@ -115,17 +207,36 @@ export function OrderClient() {
         // Sorted so the server receives them in the order they will be
         // delivered; it sorts too, but sending noise makes debugging harder.
         days: [...days].sort(),
+        delivery: {
+          addressLine: addressLine.trim(),
+          city: city.trim(),
+          postalCode,
+        },
       });
       setPlaced(order);
     } catch (e) {
+      const body = e instanceof ApiError ? e.body : null;
+      const postalRefused =
+        e instanceof ApiError &&
+        e.status === 422 &&
+        Array.isArray(body?.message) &&
+        body.message.some(
+          (m) => typeof m !== 'string' && m.field === 'delivery.postalCode',
+        );
       // 403 here means the intake gate refused — the most likely failure, and
-      // the one with an action attached, so it gets its own message.
-      const message =
-        e instanceof ApiError && e.status === 403
-          ? t('needProfile')
-          : (formatApiError(e instanceof ApiError ? e.body : null) ||
-            t('errorGeneric'));
-      setError(message);
+      // the one with an action attached, so it gets its own message. A 422 on
+      // the postal code means no active zone covers it (any more): say so in
+      // words, on the field, rather than as "delivery.postalCode: …".
+      if (postalRefused) {
+        setQuote({ state: 'notDelivered', postalCode });
+        setError(t('zoneNotDelivered'));
+      } else {
+        setError(
+          e instanceof ApiError && e.status === 403
+            ? t('needProfile')
+            : formatApiError(body) || t('errorGeneric'),
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -168,6 +279,18 @@ export function OrderClient() {
             shipping: formatGrosze(placed.shippingGrosze, locale),
           })}
         </p>
+        {placed.delivery && (
+          <p
+            className="bobr-body"
+            data-testid="order-delivery"
+            style={{ fontSize: 'var(--bobr-text-sm)', overflowWrap: 'anywhere' }}
+          >
+            {t('successAddress', {
+              address: `${placed.delivery.addressLine}, ${placed.delivery.postalCode} ${placed.delivery.city}`,
+              zone: locale === 'pl' ? placed.delivery.zoneNamePl : placed.delivery.zoneNameEn,
+            })}
+          </p>
+        )}
         <p className="bobr-body">{t('successBody')}</p>
         <a href={DASHBOARD_URL} style={{ textDecoration: 'none' }}>
           <Button>{t('goDashboard')}</Button>
@@ -248,14 +371,9 @@ export function OrderClient() {
         ) : (
           <p
             className="bobr-body"
-            data-testid="one-time-shipping"
             style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.75rem' }}
           >
-            {shipping !== null
-              ? t('shippingOneTime', { amount: formatGrosze(shipping, locale) })
-              : shippingFailed
-                ? t('shippingUnknown')
-                : t('shippingLoading')}
+            {t('shippingByZone')}
           </p>
         )}
       </fieldset>
@@ -394,6 +512,96 @@ export function OrderClient() {
         </p>
       </fieldset>
 
+      <fieldset
+        data-testid="delivery-address"
+        style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
+      >
+        <legend className="bobr-h4" style={{ marginBottom: '0.875rem' }}>
+          {t('addressTitle')}
+        </legend>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Field
+            label={t('addressLine')}
+            name="addressLine"
+            autoComplete="address-line1"
+            maxLength={ADDRESS_LINE_MAX}
+            value={addressLine}
+            onChange={(e) => {
+              setAddressLine(e.target.value);
+              clearAddressError();
+            }}
+            error={addressError('addressLine')}
+          />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
+              gap: '1rem',
+            }}
+          >
+            <Field
+              label={t('postalCode')}
+              name="postalCode"
+              autoComplete="postal-code"
+              inputMode="numeric"
+              placeholder="00-000"
+              maxLength={6}
+              value={postalCode}
+              onChange={(e) => {
+                setPostalCode(formatPostalCodeInput(e.target.value));
+                clearAddressError();
+              }}
+              hint={t('postalCodeHint')}
+              error={addressError('postalCode')}
+            />
+            <Field
+              label={t('city')}
+              name="city"
+              autoComplete="address-level2"
+              maxLength={CITY_MAX}
+              value={city}
+              onChange={(e) => {
+                setCity(e.target.value);
+                clearAddressError();
+              }}
+              error={addressError('city')}
+            />
+          </div>
+          {/* Polite, but not role="status": the order's error line below is the
+              first status region, and scripts read that one. */}
+          <p
+            aria-live="polite"
+            data-testid="zone-quote"
+            data-quote={currentQuote.state}
+            style={{
+              minHeight: '1.2em',
+              fontSize: 'var(--bobr-text-sm)',
+              color:
+                currentQuote.state === 'notDelivered'
+                  ? 'var(--bobr-danger)'
+                  : 'var(--bobr-fg)',
+            }}
+          >
+            {currentQuote.state === 'loading' && t('zoneChecking')}
+            {currentQuote.state === 'failed' && t('zoneFailed')}
+            {currentQuote.state === 'ok' && (
+              <>
+                {t('zoneName', {
+                  zone:
+                    locale === 'pl' ? currentQuote.zone.namePl : currentQuote.zone.nameEn,
+                })}
+                {' · '}
+                {mode === 'ONE_TIME'
+                  ? t('shippingOneTime', {
+                      amount: formatGrosze(currentQuote.zone.oneTimeShippingGrosze, locale),
+                    })
+                  : t('shippingFreeShort')}
+              </>
+            )}
+          </p>
+        </div>
+      </fieldset>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
         {/*
           No running total. The server prices the order, and reproducing the
@@ -420,19 +628,30 @@ export function OrderClient() {
           {error}
         </p>
 
-        <div>
+        {/* A disabled fieldset disables the button inside it natively — the
+            shared Button has no disabled prop, and this keeps it that way. */}
+        <fieldset
+          disabled={notDelivered}
+          style={{
+            border: 0,
+            margin: 0,
+            padding: 0,
+            minWidth: 0,
+            opacity: notDelivered ? 0.5 : 1,
+          }}
+        >
           <Button onClick={place} type="button">
             {busy ? t('placing') : t('place')}
           </Button>
-        </div>
-        {!canPlace && !busy && (
+        </fieldset>
+        {(notDelivered || (!canPlace && !busy)) && (
           <span
             style={{
               fontSize: 'var(--bobr-text-xs)',
               color: 'var(--bobr-fg-muted)',
             }}
           >
-            {tooFewDays ? t('minDays') : t('pickDays')}
+            {notDelivered ? t('zoneNotDelivered') : tooFewDays ? t('minDays') : t('pickDays')}
           </span>
         )}
       </div>
