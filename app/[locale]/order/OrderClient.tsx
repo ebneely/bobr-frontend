@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { apiFetch, ApiError, formatApiError } from '@/lib/api/client';
+import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import { apiQuoteZone, type ZoneQuote } from '@/lib/api/delivery-zones';
 import { apiPlaceOrder, formatGrosze, type Order, type OrderMode } from '@/lib/api/orders';
 import { DASHBOARD_URL } from '@/lib/auth/urls';
@@ -53,6 +54,7 @@ const MIN_CALENDAR_DAYS = 5;
 
 export function OrderClient() {
   const t = useTranslations('order');
+  const translateError = useApiErrorTranslate();
   const locale = useLocale();
 
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -232,9 +234,11 @@ export function OrderClient() {
         setError(t('zoneNotDelivered'));
       } else {
         setError(
-          e instanceof ApiError && e.status === 403
+          // An older backend sends no code; its English 403 is still the
+          // intake gate, so keep the localised hint for it.
+          e instanceof ApiError && e.status === 403 && !body?.code
             ? t('needProfile')
-            : formatApiError(body) || t('errorGeneric'),
+            : formatApiError(body, translateError) || t('errorGeneric'),
         );
       }
     } finally {

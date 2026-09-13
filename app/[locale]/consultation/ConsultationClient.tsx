@@ -13,6 +13,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/Button';
 import { ApiError, formatApiError } from '@/lib/api/client';
+import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import {
   apiBookConsultation,
   CONSULTATION_NOTE_MAX,
@@ -61,6 +62,7 @@ const labelStyle: CSSProperties = {
 
 export function ConsultationClient() {
   const t = useTranslations('consultation');
+  const translateError = useApiErrorTranslate();
   const locale = useLocale();
   const ids = useId();
 
@@ -103,7 +105,7 @@ export function ConsultationClient() {
       const message =
         err instanceof ApiError && err.status === 401
           ? t('errorSignedOut')
-          : formatApiError(err instanceof ApiError ? err.body : null) || t('errorGeneric');
+          : formatApiError(err instanceof ApiError ? err.body : null, translateError) || t('errorGeneric');
       setError(message);
     } finally {
       setBusy(false);

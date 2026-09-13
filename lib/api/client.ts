@@ -8,11 +8,29 @@
 
 const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003'}/v1`;
 
+/** ICU params the backend attaches to a code, e.g. `{ maxMb: 10 }`. */
+export type ApiErrorParams = Record<string, string | number>;
+
+/**
+ * One validation failure. `issue` is English, for logs; `code` is the stable
+ * key a front end translates. Optional so an older backend still type-checks.
+ */
+export interface FieldIssue {
+  field: string;
+  issue: string;
+  code?: string;
+  params?: ApiErrorParams;
+}
+
 /** The error body every backend failure arrives in — see the backend's HttpExceptionFilter. */
 export interface ApiErrorBody {
   statusCode: number;
-  message: string | string[] | Array<{ field: string; issue: string }>;
+  /** English, unchanged — the fallback whenever a code cannot be translated. */
+  message: string | string[] | FieldIssue[];
   error: string;
+  /** Stable, translatable error code (ebneely/bobr-backend#21). */
+  code?: string;
+  params?: ApiErrorParams;
   traceId?: string;
   path?: string;
   timestamp?: string;
@@ -34,19 +52,47 @@ export class ApiError extends Error {
 }
 
 /**
+ * Turns a backend error code into a localised string, or null when this client
+ * has no string for it. `'field:<path>'` asks for a field's label instead. See
+ * `lib/api/use-api-error.ts` for the next-intl implementation.
+ */
+export type ApiErrorTranslate = (code: string, params?: ApiErrorParams) => string | null;
+
+/**
  * The backend's `message` is a string, a string[], or a `{field, issue}[]` for
  * validation failures. Callers that just want something to show a user should
  * use this rather than each re-deriving the three cases.
+ *
+ * With `translate`, codes are shown in the page's language; anything this
+ * client does not know falls back to the English `message` — never a blank and
+ * never a raw key.
  */
-export function formatApiError(body: ApiErrorBody | null | undefined): string {
+export function formatApiError(
+  body: ApiErrorBody | null | undefined,
+  translate?: ApiErrorTranslate,
+): string {
   if (!body) return '';
   const { message } = body;
+
+  const fieldItems =
+    Array.isArray(message) && message.some((m) => typeof m !== 'string');
+
+  if (!fieldItems && translate && body.code) {
+    const translated = translate(body.code, body.params);
+    if (translated) return translated;
+  }
 
   if (typeof message === 'string') return message;
   if (!Array.isArray(message)) return '';
 
-  return message
-    .map((m) => (typeof m === 'string' ? m : `${m.field}: ${m.issue}`))
+  return (message as Array<string | FieldIssue>)
+    .map((m) => {
+      if (typeof m === 'string') return m;
+      const issue = translate && m.code ? translate(m.code, m.params) : null;
+      if (!issue) return `${m.field}: ${m.issue}`;
+      const label = translate?.(`field:${m.field}`, undefined);
+      return label ? `${label}: ${issue}` : issue;
+    })
     .join('\n');
 }
 
