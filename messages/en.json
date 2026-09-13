@@ -138,7 +138,8 @@
     "blikPending": "We will send the BLIK payment details shortly.",
     "copy": "Copy",
     "copied": "Copied",
-    "copyFailed": "Could not copy"
+    "copyFailed": "Could not copy",
+    "blikSteps": "In your bank's app choose “BLIK phone transfer”, enter the number and amount below, and put the code below in the transfer title."
   },
   "home": {
     "eyebrow": "Diet catering",

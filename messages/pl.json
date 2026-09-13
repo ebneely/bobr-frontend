@@ -138,7 +138,8 @@
     "blikPending": "Dane do płatności BLIK prześlemy wkrótce.",
     "copy": "Kopiuj",
     "copied": "Skopiowano",
-    "copyFailed": "Nie udało się skopiować"
+    "copyFailed": "Nie udało się skopiować",
+    "blikSteps": "W aplikacji swojego banku wybierz „Przelew na telefon BLIK”, wpisz poniższy numer i kwotę, a w tytule przelewu podaj kod podany niżej."
   },
   "home": {
     "eyebrow": "Katering dietetyczny",
