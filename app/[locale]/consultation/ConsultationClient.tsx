@@ -148,7 +148,11 @@ export function ConsultationClient() {
       <section style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
         <h2 className="bobr-h4">{t('signInTitle')}</h2>
         <p className="bobr-body">{t('signInBody')}</p>
-        <Button href="/login">{t('signIn')}</Button>
+        {/* Carries this page as `next`, so signing in returns to the booking
+            instead of dropping the visitor on the dashboard. */}
+        <Button href={{ pathname: '/login', query: { next: `/${locale}/consultation` } }}>
+          {t('signIn')}
+        </Button>
       </section>
     );
   }

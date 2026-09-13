@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
 import { DASHBOARD_URL } from '@/lib/auth/urls';
 
-export function LoginClient() {
+export function LoginClient({ next }: { next: string | null }) {
   const t = useTranslations('auth');
 
   const [email, setEmail] = useState('');
@@ -36,7 +36,10 @@ export function LoginClient() {
     // A full navigation, not a client-side push: the dashboard is a separate
     // app on its own origin, and its server layout has to read the new session
     // cookie on a real request.
-    window.location.assign(DASHBOARD_URL);
+    //
+    // Back to the page that sent them here (a booking, an order) when there is
+    // one; `next` is validated as a local path on the server before it arrives.
+    window.location.assign(next ?? DASHBOARD_URL);
   }
 
   return (
@@ -88,7 +91,10 @@ export function LoginClient() {
         }}
       >
         {t('noAccount')}{' '}
-        <Link href="/register" className="bobr-navlink">
+        <Link
+          href={next ? { pathname: '/register', query: { next } } : '/register'}
+          className="bobr-navlink"
+        >
           {t('submitRegister')}
         </Link>
       </p>
