@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { Link } from '@/lib/i18n/navigation';
 import { ApiError, formatApiError } from '@/lib/api/client';
+import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import {
   PHOTO_POSITIONS,
   apiGetMyIntake,
@@ -45,6 +46,7 @@ type Load = 'loading' | 'ready' | 'failed';
 
 export function IntakeClient() {
   const t = useTranslations('intake');
+  const translateError = useApiErrorTranslate();
 
   const [load, setLoad] = useState<Load>('loading');
   const [profile, setProfile] = useState<IntakeProfile | null>(null);
@@ -167,7 +169,7 @@ export function IntakeClient() {
       setSaved(true);
     } catch (e: unknown) {
       const body = e instanceof ApiError ? e.body : null;
-      setSaveError(formatApiError(body) || t('errSave'));
+      setSaveError(formatApiError(body, translateError) || t('errSave'));
     } finally {
       setSaving(false);
     }
@@ -181,7 +183,7 @@ export function IntakeClient() {
     } catch (e: unknown) {
       const body = e instanceof ApiError ? e.body : null;
       setPhotoError(
-        `${t(PHOTO_LABEL_KEY[position])}: ${formatApiError(body) || t('errPhoto')}`,
+        `${t(PHOTO_LABEL_KEY[position])}: ${formatApiError(body, translateError) || t('errPhoto')}`,
       );
     } finally {
       setUploading(null);
