@@ -44,6 +44,7 @@ export function SiteHeader() {
     { href: '/#how', label: t('howItWorks') },
     { href: '/#diets', label: t('diets') },
     { href: '/#pricing', label: t('pricing') },
+    { href: '/consultation', label: t('consultation') },
   ];
 
   useEffect(() => {
