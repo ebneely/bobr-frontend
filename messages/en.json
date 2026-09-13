@@ -85,8 +85,8 @@
   },
   "consultation": {
     "eyebrow": "Consultation",
-    "lead": "Talk to",
-    "em": "a dietitian",
+    "lead": "Talk it through",
+    "em": "with a doctor",
     "subtitle": "An online call on Google Meet. Pick a time that suits you — the doctor confirms it in your dashboard.",
     "signInTitle": "Log in to book a consultation",
     "signInBody": "Consultations are booked on your account, so the confirmation and the call link reach your dashboard.",
