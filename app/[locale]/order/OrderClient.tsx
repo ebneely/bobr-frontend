@@ -5,8 +5,15 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/Button';
 import { apiFetch, ApiError, formatApiError } from '@/lib/api/client';
-import { apiPlaceOrder, formatGrosze, type OrderMode } from '@/lib/api/orders';
+import { apiPlaceOrder, formatGrosze, type Order, type OrderMode } from '@/lib/api/orders';
+import { apiGetShipping } from '@/lib/api/settings';
 import { DASHBOARD_URL } from '@/lib/auth/urls';
+import {
+  formatDayLabel,
+  formatMonthLabel,
+  groupByMonth,
+  offeredDeliveryDays,
+} from '@/lib/dates';
 
 interface Meal {
   id: string;
@@ -19,8 +26,6 @@ interface Meal {
 
 /** Matches the server. Duplicated deliberately — see the note on the total. */
 const MIN_CALENDAR_DAYS = 5;
-const LEAD_DAYS = 2;
-const DAYS_OFFERED = 28;
 
 export function OrderClient() {
   const t = useTranslations('order');
@@ -31,8 +36,17 @@ export function OrderClient() {
   const [mode, setMode] = useState<OrderMode>('CALENDAR');
   const [days, setDays] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
-  const [placed, setPlaced] = useState<{ total: number } | null>(null);
+  const [placed, setPlaced] = useState<Order | null>(null);
   const [busy, setBusy] = useState(false);
+  /** One-time shipping in grosze, from the admin setting. Null until loaded. */
+  const [shipping, setShipping] = useState<number | null>(null);
+  const [shippingFailed, setShippingFailed] = useState(false);
+
+  useEffect(() => {
+    apiGetShipping()
+      .then((s) => setShipping(s.oneTimeShippingGrosze))
+      .catch(() => setShippingFailed(true));
+  }, []);
 
   useEffect(() => {
     apiFetch<Meal[]>('/meals', { auth: false })
@@ -44,33 +58,19 @@ export function OrderClient() {
   }, [t]);
 
   /**
-   * The days on offer: from today + lead time, four weeks out.
-   *
-   * Built from the local date and formatted as YYYY-MM-DD by hand rather than
-   * with toISOString(), which converts to UTC first — for anyone east of
-   * Greenwich that silently shifts the evening's dates back by one day.
+   * The days on offer: Warsaw today + lead time, through the end of the
+   * following calendar month, so any whole month can be picked in full.
+   * Counted in Europe/Warsaw by `lib/dates` — never the browser's zone.
    */
-  const offered = useMemo(() => {
-    const out: { iso: string; label: string }[] = [];
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    start.setDate(start.getDate() + LEAD_DAYS);
-
-    for (let i = 0; i < DAYS_OFFERED; i += 1) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      out.push({
-        iso,
-        label: d.toLocaleDateString(locale === 'pl' ? 'pl-PL' : 'en-GB', {
-          day: 'numeric',
-          month: 'short',
-          weekday: 'short',
-        }),
-      });
-    }
-    return out;
-  }, [locale]);
+  const offered = useMemo(
+    () =>
+      groupByMonth(offeredDeliveryDays()).map((group) => ({
+        month: group.month,
+        label: formatMonthLabel(group.month, locale),
+        days: group.days.map((iso) => ({ iso, label: formatDayLabel(iso, locale) })),
+      })),
+    [locale],
+  );
 
   // Every card gets a frame as soon as ANY meal has a photo, so a catalogue
   // that is only half photographed does not render as a row of cards at two
@@ -80,6 +80,19 @@ export function OrderClient() {
 
   const tooFewDays = mode === 'CALENDAR' && days.size < MIN_CALENDAR_DAYS;
   const canPlace = Boolean(mealId) && days.size > 0 && !tooFewDays && !busy;
+
+  /** Selects every offered day of a month, or clears them if all are selected. */
+  function toggleMonth(isos: string[]) {
+    setDays((previous) => {
+      const next = new Set(previous);
+      const allOn = isos.every((iso) => next.has(iso));
+      for (const iso of isos) {
+        if (allOn) next.delete(iso);
+        else next.add(iso);
+      }
+      return next;
+    });
+  }
 
   function toggleDay(iso: string) {
     setDays((previous) => {
@@ -103,7 +116,7 @@ export function OrderClient() {
         // delivered; it sorts too, but sending noise makes debugging harder.
         days: [...days].sort(),
       });
-      setPlaced({ total: order.totalGrosze });
+      setPlaced(order);
     } catch (e) {
       // 403 here means the intake gate refused — the most likely failure, and
       // the one with an action attached, so it gets its own message.
@@ -140,7 +153,20 @@ export function OrderClient() {
             color: 'var(--bobr-accent)',
           }}
         >
-          {formatGrosze(placed.total, locale)}
+          {formatGrosze(placed.totalGrosze, locale)}
+        </p>
+        {/* Figures as the server priced them — nothing recomputed here. */}
+        <p
+          className="bobr-body"
+          data-testid="order-breakdown"
+          style={{ fontSize: 'var(--bobr-text-sm)' }}
+        >
+          {t('successBreakdown', {
+            days: placed.days.length,
+            percent: placed.discountPercent,
+            discount: formatGrosze(placed.discountGrosze, locale),
+            shipping: formatGrosze(placed.shippingGrosze, locale),
+          })}
         </p>
         <p className="bobr-body">{t('successBody')}</p>
         <a href={DASHBOARD_URL} style={{ textDecoration: 'none' }}>
@@ -204,12 +230,32 @@ export function OrderClient() {
             note={t('oneTimeNote')}
           />
         </div>
-        {mode === 'CALENDAR' && (
+        {mode === 'CALENDAR' ? (
+          <>
+            <p
+              className="bobr-body"
+              style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.75rem' }}
+            >
+              {t('shippingFree')}
+            </p>
+            <p
+              className="bobr-body"
+              style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.25rem' }}
+            >
+              {t('ladder')}
+            </p>
+          </>
+        ) : (
           <p
             className="bobr-body"
+            data-testid="one-time-shipping"
             style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.75rem' }}
           >
-            {t('ladder')}
+            {shipping !== null
+              ? t('shippingOneTime', { amount: formatGrosze(shipping, locale) })
+              : shippingFailed
+                ? t('shippingUnknown')
+                : t('shippingLoading')}
           </p>
         )}
       </fieldset>
@@ -225,64 +271,116 @@ export function OrderClient() {
           {t('leadTime')}
         </p>
 
-        <div
-          style={{
-            display: 'grid',
-            // 6.5rem was narrower than a Polish day label ("niedz., 20 wrz"),
-            // so every cell wrapped to two lines and the rows went ragged.
-            // The track is now wide enough for the longest label the pl-PL
-            // formatter produces, and `min(100%, …)` keeps the grid from
-            // overflowing a 390px viewport, where it simply drops to one
-            // column instead of forcing a horizontal scrollbar.
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 9rem), 1fr))',
-            gap: '0.5rem',
-          }}
-        >
-          {offered.map((day) => {
-            const on = days.has(day.iso);
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {offered.map((group) => {
+            const isos = group.days.map((d) => d.iso);
+            const allOn = isos.every((iso) => days.has(iso));
             return (
-              <label
-                key={day.iso}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.6rem 0.4rem',
-                  cursor: 'pointer',
-                  fontSize: 'var(--bobr-text-sm)',
-                  textAlign: 'center',
-                  // One line, always. Belt to the widened track's braces: if a
-                  // locale ever produces a longer label than we sized for, the
-                  // cell clips rather than silently growing taller than its
-                  // neighbours and re-ragging the whole grid.
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  borderRadius: 'var(--bobr-radius-control)',
-                  border: `1px solid ${on ? 'transparent' : 'var(--bobr-border)'}`,
-                  background: on ? 'var(--bobr-fg)' : 'var(--bobr-surface)',
-                  color: on ? 'var(--bobr-on-dark)' : 'var(--bobr-fg)',
-                  transition: 'background var(--bobr-duration) var(--bobr-ease)',
-                }}
+              <div
+                key={group.month}
+                data-month={group.month}
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}
               >
-                {/* A real checkbox, visually hidden rather than display:none —
-                    display:none removes it from the tab order and from the
-                    accessibility tree, so the grid would be unusable by
-                    keyboard and silent to a screen reader. */}
-                <input
-                  type="checkbox"
-                  checked={on}
-                  onChange={() => toggleDay(day.iso)}
+                <div
                   style={{
-                    position: 'absolute',
-                    width: 1,
-                    height: 1,
-                    opacity: 0,
-                    pointerEvents: 'none',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    gap: '0.25rem 1rem',
                   }}
-                />
-                {day.label}
-              </label>
+                >
+                  <h3
+                    className="bobr-body"
+                    style={{
+                      fontWeight: 'var(--bobr-weight-semibold)',
+                      color: 'var(--bobr-fg)',
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {group.label}
+                  </h3>
+                  {/* A button, not a checkbox: the day cells are the only
+                      checkboxes in this grid, and scripts count on that. */}
+                  <button
+                    type="button"
+                    className="bobr-navlink"
+                    data-select-month={group.month}
+                    onClick={() => toggleMonth(isos)}
+                    style={{
+                      background: 'none',
+                      border: 0,
+                      padding: 0,
+                      font: 'inherit',
+                      fontSize: 'var(--bobr-text-sm)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {allOn ? t('clearMonth') : t('selectMonth', { count: isos.length })}
+                  </button>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    // 6.5rem was narrower than a Polish day label ("niedz., 20 wrz"),
+                    // so every cell wrapped to two lines and the rows went ragged.
+                    // The track is now wide enough for the longest label the pl-PL
+                    // formatter produces, and `min(100%, …)` keeps the grid from
+                    // overflowing a 390px viewport, where it simply drops to one
+                    // column instead of forcing a horizontal scrollbar.
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 9rem), 1fr))',
+                    gap: '0.5rem',
+                  }}
+                >
+                  {group.days.map((day) => {
+                  const on = days.has(day.iso);
+                  return (
+                    <label
+                      key={day.iso}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0.6rem 0.4rem',
+                        cursor: 'pointer',
+                        fontSize: 'var(--bobr-text-sm)',
+                        textAlign: 'center',
+                        // One line, always. Belt to the widened track's braces: if a
+                        // locale ever produces a longer label than we sized for, the
+                        // cell clips rather than silently growing taller than its
+                        // neighbours and re-ragging the whole grid.
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        borderRadius: 'var(--bobr-radius-control)',
+                        border: `1px solid ${on ? 'transparent' : 'var(--bobr-border)'}`,
+                        background: on ? 'var(--bobr-fg)' : 'var(--bobr-surface)',
+                        color: on ? 'var(--bobr-on-dark)' : 'var(--bobr-fg)',
+                        transition: 'background var(--bobr-duration) var(--bobr-ease)',
+                      }}
+                    >
+                      {/* A real checkbox, visually hidden rather than display:none —
+                          display:none removes it from the tab order and from the
+                          accessibility tree, so the grid would be unusable by
+                          keyboard and silent to a screen reader. */}
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => toggleDay(day.iso)}
+                        style={{
+                          position: 'absolute',
+                          width: 1,
+                          height: 1,
+                          opacity: 0,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                      {day.label}
+                    </label>
+                  );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>
