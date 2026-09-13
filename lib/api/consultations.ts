@@ -27,6 +27,10 @@ export interface Consultation {
   scheduledAt: string | null;
   meetUrl: string | null;
   confirmedAt: string | null;
+  /** Set by the admin once the BLIK transfer has arrived. */
+  paidAt: string | null;
+  /** Transfer title for the BLIK payment: "BOBR-" + 8 upper-case hex. */
+  paymentReference: string;
   createdAt: string;
 }
 

@@ -1,6 +1,14 @@
 'use client';
 
-import { useId, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/Button';
@@ -13,6 +21,7 @@ import {
   type ConsultationContext,
 } from '@/lib/api/consultations';
 import { formatGrosze } from '@/lib/api/orders';
+import { apiGetPaymentSettings, type PaymentSettings } from '@/lib/api/settings';
 import { authClient } from '@/lib/auth/client';
 import { DASHBOARD_URL } from '@/lib/auth/urls';
 import {
@@ -24,6 +33,7 @@ import {
   warsawDaysFromToday,
   warsawWallClockToIso,
 } from '@/lib/dates';
+import { formatBlikPhone } from '@/lib/delivery';
 
 /** Full and half hours, 08:00 through 20:00, Warsaw wall clock. */
 const TIMES: string[] = Array.from({ length: 25 }, (_, i) => {
@@ -123,15 +133,10 @@ export function ConsultationClient() {
             when: `${formatLongDay(booked.day, locale)}, ${booked.time}`,
           })}
         </p>
-        <p
-          style={{
-            fontSize: 'var(--bobr-text-h4)',
-            fontWeight: 'var(--bobr-weight-bold)',
-            color: 'var(--bobr-accent)',
-          }}
-        >
-          {formatGrosze(booked.row.priceGrosze, locale)}
-        </p>
+        <BlikInstructions
+          priceGrosze={booked.row.priceGrosze}
+          paymentReference={booked.row.paymentReference}
+        />
         <a href={dashboardLink} style={{ textDecoration: 'none' }}>
           <Button>{t('goDashboard')}</Button>
         </a>
@@ -310,6 +315,211 @@ export function ConsultationClient() {
         <Button type="submit">{busy ? t('submitting') : t('submit')}</Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * How to pay for the consultation, shown once it is booked.
+ *
+ * The number comes from the admin's payment settings, read after booking
+ * rather than before, so a number changed in the meantime is the one shown.
+ * The amount and the transfer title come from the booking itself — the
+ * server froze the price on the row and derived the reference from its id.
+ */
+function BlikInstructions({
+  priceGrosze,
+  paymentReference,
+}: {
+  priceGrosze: number;
+  paymentReference: string;
+}) {
+  const t = useTranslations('consultation');
+  const locale = useLocale();
+  // undefined while loading; null when the settings could not be read, which
+  // is treated like "not configured yet" — the reference is still shown.
+  const [settings, setSettings] = useState<PaymentSettings | null | undefined>(undefined);
+
+  useEffect(() => {
+    let live = true;
+    apiGetPaymentSettings()
+      .then((s) => {
+        if (live) setSettings(s);
+      })
+      .catch(() => {
+        if (live) setSettings(null);
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const phone = settings?.blikPhone ?? null;
+  const recipient = settings?.blikRecipientName ?? null;
+
+  return (
+    <div
+      data-testid="blik-instructions"
+      data-configured={settings === undefined ? 'loading' : phone ? 'true' : 'false'}
+      style={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.875rem',
+        padding: '1.25rem',
+        borderRadius: 'var(--bobr-radius)',
+        background: 'var(--bobr-bg-alt)',
+      }}
+    >
+      <h3 className="bobr-h4">{phone ? t('blikTitle') : t('paymentTitle')}</h3>
+      <p
+        data-testid="blik-amount"
+        style={{
+          fontSize: 'var(--bobr-text-h4)',
+          fontWeight: 'var(--bobr-weight-bold)',
+          color: 'var(--bobr-accent)',
+        }}
+      >
+        {formatGrosze(priceGrosze, locale)}
+      </p>
+
+      {settings === undefined ? (
+        <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
+          {t('blikLoading')}
+        </p>
+      ) : phone ? (
+        <>
+          <CopyRow
+            label={t('blikPhone')}
+            value={formatBlikPhone(phone)}
+            copyValue={phone}
+            testId="blik-phone"
+          />
+          {recipient && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+              <span style={rowLabelStyle}>{t('blikRecipient')}</span>
+              <span data-testid="blik-recipient" style={rowValueStyle}>
+                {recipient}
+              </span>
+            </div>
+          )}
+        </>
+      ) : (
+        <p
+          className="bobr-body"
+          data-testid="blik-pending"
+          style={{ fontSize: 'var(--bobr-text-sm)' }}
+        >
+          {t('blikPending')}
+        </p>
+      )}
+
+      <CopyRow
+        label={t('blikReference')}
+        value={paymentReference}
+        copyValue={paymentReference}
+        testId="blik-reference"
+      />
+      <p style={{ fontSize: 'var(--bobr-text-sm)', color: 'var(--bobr-fg-muted)' }}>
+        {t('blikReferenceHint')}
+      </p>
+    </div>
+  );
+}
+
+const rowLabelStyle: CSSProperties = {
+  fontSize: 'var(--bobr-text-xs)',
+  color: 'var(--bobr-fg-muted)',
+};
+
+const rowValueStyle: CSSProperties = {
+  fontSize: 'var(--bobr-text-body)',
+  fontWeight: 'var(--bobr-weight-semibold)',
+  color: 'var(--bobr-fg)',
+  overflowWrap: 'anywhere',
+};
+
+/** A labelled value with a button that copies it to the clipboard. */
+function CopyRow({
+  label,
+  value,
+  copyValue,
+  testId,
+}: {
+  label: string;
+  value: string;
+  copyValue: string;
+  testId: string;
+}) {
+  const t = useTranslations('consultation');
+  const [copied, setCopied] = useState<'ok' | 'failed' | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(copyValue);
+      setCopied('ok');
+    } catch {
+      setCopied('failed');
+    }
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(null), 2500);
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.5rem 1rem',
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: 0 }}>
+        <span style={rowLabelStyle}>{label}</span>
+        <span data-testid={testId} style={rowValueStyle}>
+          {value}
+        </span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span
+          aria-live="polite"
+          data-testid={`${testId}-copied`}
+          style={{
+            fontSize: 'var(--bobr-text-sm)',
+            color: copied === 'failed' ? 'var(--bobr-danger)' : 'var(--bobr-fg-muted)',
+          }}
+        >
+          {copied === 'ok' ? t('copied') : copied === 'failed' ? t('copyFailed') : ''}
+        </span>
+        <button
+          type="button"
+          data-copy={testId}
+          onClick={copy}
+          aria-label={`${t('copy')}: ${label}`}
+          style={{
+            padding: '0.5rem 0.9rem',
+            font: 'inherit',
+            fontSize: 'var(--bobr-text-sm)',
+            fontWeight: 'var(--bobr-weight-medium)',
+            color: 'var(--bobr-fg)',
+            background: 'var(--bobr-surface)',
+            border: '1px solid var(--bobr-border)',
+            borderRadius: 'var(--bobr-radius-control)',
+            cursor: 'pointer',
+          }}
+        >
+          {t('copy')}
+        </button>
+      </div>
+    </div>
   );
 }
 

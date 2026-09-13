@@ -42,7 +42,22 @@ export interface Order {
   totalGrosze: number;
   createdAt: string;
   days: OrderDay[];
+  /** Null on orders placed before addresses were collected. */
+  delivery: OrderDelivery | null;
   meal?: { namePl: string; nameEn: string; type: string };
+}
+
+export interface DeliveryAddress {
+  addressLine: string;
+  city: string;
+  /** NN-NNN */
+  postalCode: string;
+}
+
+export interface OrderDelivery extends DeliveryAddress {
+  zoneId: string;
+  zoneNamePl: string;
+  zoneNameEn: string;
 }
 
 export interface CustomerNote {
@@ -60,6 +75,7 @@ export function apiPlaceOrder(input: {
   mode: OrderMode;
   /** YYYY-MM-DD, one per delivery day. */
   days: string[];
+  delivery: DeliveryAddress;
 }) {
   return apiFetch<Order>('/orders', { method: 'POST', body: input });
 }

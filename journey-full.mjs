@@ -77,6 +77,19 @@ async function fillSettled(p, selector, value) {
   throw new Error(`value would not stick in ${selector} (page not hydrated?)`);
 }
 
+// The delivery address every order in this journey is sent to. 00-950 is in
+// the seeded Warszawa zone (prefixes 00-04). The zone quote runs debounced once
+// the postal code is complete, so wait for its answer before placing.
+async function fillAddress(p) {
+  await fillSettled(p, 'input[name="addressLine"]', 'ul. Marszałkowska 1');
+  await fillSettled(p, 'input[name="city"]', 'Warszawa');
+  await fillSettled(p, 'input[name="postalCode"]', '00-950');
+  await p
+    .locator('[data-testid="zone-quote"][data-quote="ok"]')
+    .waitFor({ state: 'attached', timeout: 10000 })
+    .catch(() => {});
+}
+
 async function signIn(p, email, password) {
   await p.goto(`${FE}/pl/login`, { waitUntil: 'domcontentloaded' });
   // Hydration has to finish before a controlled input will keep what it is given.
@@ -140,11 +153,15 @@ try {
   const dayCells = page.locator('label:has(input[type="checkbox"])');
   const dayCount = await dayCells.count();
   for (let i = 0; i < 5; i += 1) await dayCells.nth(i).click();
+  // A complete address, so the refusal comes from the intake gate on the
+  // server and not from the storefront's own address validation.
+  await fillAddress(page);
   await page.getByRole('button', { name: /Złóż zamówienie/i }).click();
   await page.waitForTimeout(3500);
   const refusal = (await page.locator('[role="status"]').first().textContent())?.trim() ?? '';
   await shot(page, '05-gate-refusal');
-  record('4 order refused before intake is complete', refusal.length > 0, {
+  // "Najpierw uzupełnij profil." — the intake gate's message, not "Uzupełnij adres dostawy."
+  record('4 order refused before intake is complete', /profil/i.test(refusal), {
     daysOffered: dayCount,
     message: refusal.slice(0, 120),
   });
@@ -268,6 +285,7 @@ try {
   // ---- 9/10. ten days, then place ----------------------------------------
   for (let i = 2; i < 10; i += 1) await cells.nth(i).click();
   await page.waitForTimeout(600);
+  await fillAddress(page);
   await shot(page, '15-ten-days-picked');
   await page.getByRole('button', { name: /Złóż zamówienie/i }).click();
   await page.waitForTimeout(5000);
