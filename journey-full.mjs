@@ -283,7 +283,9 @@ try {
   // ---- 11. the order is on their dashboard --------------------------------
   await page.goto(`${DASH}/pl/dashboard/calendar`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(3500);
-  const dayBoxes = page.locator('input[type="checkbox"]');
+  // The dashboard uses shadcn Checkbox (ebneely/bobr-dashboard#16): a button
+  // with role="checkbox" and aria-checked, not a native <input type="checkbox">.
+  const dayBoxes = page.locator('[role="checkbox"]');
   const dayBoxCount = await dayBoxes.count();
   await shot(page, '17-dashboard-calendar');
   record('11 the order and its delivery days are on the dashboard', dayBoxCount >= 10, {
@@ -295,7 +297,7 @@ try {
   await page.waitForTimeout(3000);
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(3500);
-  const stillEaten = await page.locator('input[type="checkbox"]:checked').count();
+  const stillEaten = await page.locator('[role="checkbox"][aria-checked="true"]').count();
   await shot(page, '18-day-eaten-persisted');
   record('12 a day marked eaten persists across a reload', stillEaten >= 1, {
     checkedAfterReload: stillEaten,
