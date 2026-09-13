@@ -135,6 +135,16 @@ export function OrderClient() {
   const notDelivered = currentQuote.state === 'notDelivered';
   const canPlace = Boolean(mealId) && days.size > 0 && !tooFewDays && !busy;
 
+  /**
+   * An address message under the button goes stale the moment the address is
+   * edited, so editing clears it; field errors re-derive on their own.
+   */
+  function clearAddressError() {
+    setError((current) =>
+      current === t('addressIncomplete') || current === t('zoneNotDelivered') ? null : current,
+    );
+  }
+
   function addressError(field: AddressField): string | undefined {
     if (field === 'postalCode') {
       if (notDelivered) return t('zoneNotDelivered');
@@ -516,7 +526,10 @@ export function OrderClient() {
             autoComplete="address-line1"
             maxLength={ADDRESS_LINE_MAX}
             value={addressLine}
-            onChange={(e) => setAddressLine(e.target.value)}
+            onChange={(e) => {
+              setAddressLine(e.target.value);
+              clearAddressError();
+            }}
             error={addressError('addressLine')}
           />
           <div
@@ -534,7 +547,10 @@ export function OrderClient() {
               placeholder="00-000"
               maxLength={6}
               value={postalCode}
-              onChange={(e) => setPostalCode(formatPostalCodeInput(e.target.value))}
+              onChange={(e) => {
+                setPostalCode(formatPostalCodeInput(e.target.value));
+                clearAddressError();
+              }}
               hint={t('postalCodeHint')}
               error={addressError('postalCode')}
             />
@@ -544,7 +560,10 @@ export function OrderClient() {
               autoComplete="address-level2"
               maxLength={CITY_MAX}
               value={city}
-              onChange={(e) => setCity(e.target.value)}
+              onChange={(e) => {
+                setCity(e.target.value);
+                clearAddressError();
+              }}
               error={addressError('city')}
             />
           </div>
