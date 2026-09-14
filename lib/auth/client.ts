@@ -16,6 +16,10 @@ const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
  * different origins in development (3100 and 8003). Without it the browser
  * sends no cookie and accepts no Set-Cookie, so sign-in appears to succeed and
  * the very next request is anonymous.
+ *
+ * In production NEXT_PUBLIC_API_URL is this app's own origin and next.config.ts
+ * proxies /v1 to the API, so the cookie is first-party. Pointing it straight at
+ * the API host again brings back #18: the cookie stays on that host, cross-site.
  */
 export const authClient = createAuthClient({
   baseURL: `${API_ORIGIN}/v1/auth`,

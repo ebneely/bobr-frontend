@@ -20,11 +20,17 @@ const isProd = process.env.NODE_ENV === 'production';
  * exactly right.
  */
 const REQUIRED_PUBLIC_URLS: ReadonlyArray<[string, string]> = [
-  ['NEXT_PUBLIC_API_URL', 'the BOBR API, e.g. https://api.bobr.pl'],
+  ['NEXT_PUBLIC_API_URL', "this app's own origin, which proxies /v1 to the API"],
   ['NEXT_PUBLIC_DASHBOARD_URL', 'the dashboard origin'],
 ];
+// Not public, but just as fatal when missing: without it there is no /v1 proxy,
+// NEXT_PUBLIC_API_URL (this app's own origin) answers /v1/* with a 404, and
+// nobody can sign in. See apiUpstream below.
+const REQUIRED_SERVER_URLS: ReadonlyArray<[string, string]> = [
+  ['API_UPSTREAM_URL', 'the real BOBR API origin that /v1/* is proxied to'],
+];
 if (process.env.VERCEL === '1') {
-  const problems = REQUIRED_PUBLIC_URLS.flatMap(([name, what]) => {
+  const problems = [...REQUIRED_PUBLIC_URLS, ...REQUIRED_SERVER_URLS].flatMap(([name, what]) => {
     const value = process.env[name];
     if (!value) return [`${name} is not set (${what})`];
     if (/\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(value)) {
@@ -53,6 +59,33 @@ if (process.env.VERCEL === '1') {
  */
 const httpsEnabled = process.env.HTTPS_ENABLED === 'true';
 
+/**
+ * Where /v1/* is proxied to, or null when the browser calls the API directly.
+ *
+ * better-auth's session cookie is host-only and SameSite=Lax, so it belongs to
+ * whichever origin answered the sign-in. Called cross-site (vercel.app → the
+ * API host) the cookie lands on the API host and is never sent back: sign-in
+ * "succeeds" and the next page is anonymous (ebneely/bobr-frontend#18). So in
+ * production NEXT_PUBLIC_API_URL is THIS app's origin and the rewrite below
+ * forwards /v1/* to API_UPSTREAM_URL — the cookie is first-party.
+ *
+ * A plain server var, read when next.config loads. Unset, or the same origin as
+ * NEXT_PUBLIC_API_URL (local dev: both http://localhost:8003), means no rewrite:
+ * proxying an origin to itself would loop.
+ */
+const apiUpstream = (() => {
+  const raw = process.env.API_UPSTREAM_URL;
+  if (!raw) return null;
+  try {
+    const upstream = new URL(raw).origin;
+    const publicApi = process.env.NEXT_PUBLIC_API_URL;
+    if (publicApi && new URL(publicApi).origin === upstream) return null;
+    return upstream;
+  } catch {
+    return null;
+  }
+})();
+
 const imageOrigins = (() => {
   // Where meal photographs are actually fetched FROM.
   //
@@ -64,9 +97,15 @@ const imageOrigins = (() => {
   //
   // Getting this wrong fails silently in the one way that matters: the request
   // is blocked, the card draws an empty frame, and nothing but the console says
-  // why. So every origin an image can come from is listed here.
+  // why. So every origin an image can come from is listed here — including the
+  // upstream: behind the /v1 proxy the API still builds absolute URLs on its
+  // own host.
   const origins = new Set();
-  for (const raw of [process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_IMAGE_HOST]) {
+  for (const raw of [
+    process.env.NEXT_PUBLIC_API_URL,
+    process.env.API_UPSTREAM_URL,
+    process.env.NEXT_PUBLIC_IMAGE_HOST,
+  ]) {
     if (!raw) continue;
     try {
       origins.add(new URL(raw).origin);
@@ -90,7 +129,9 @@ const contentSecurityPolicy = [
   `img-src 'self' data: blob: https:${imageOrigins.map((o) => ` ${o}`).join('')}`,
   "font-src 'self' data:",
   // http: stays allowed whenever HTTPS is not in play — the API lives on
-  // another subdomain, and over plain http every call to it is 'http:'.
+  // another subdomain, and over plain http every call to it is 'http:'. Behind
+  // the /v1 proxy the browser only ever calls 'self'; https: stays for anything
+  // still pointed at the API host directly.
   `connect-src 'self' https:${isProd && httpsEnabled ? '' : ' ws: wss: http:'}`,
   // Only when HTTPS actually exists. This directive rewrites every http://
   // request to https://, so on an http-only host it breaks every asset and
@@ -128,6 +169,14 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
+  },
+  // beforeFiles, so /v1/* never reaches the [locale] routes or the filesystem.
+  // proxy.ts excludes v1 from its matcher for the same reason: next-intl would
+  // otherwise redirect /v1/auth/... to /pl/v1/auth/... first.
+  async rewrites() {
+    return apiUpstream
+      ? { beforeFiles: [{ source: '/v1/:path*', destination: `${apiUpstream}/v1/:path*` }] }
+      : [];
   },
 };
 
