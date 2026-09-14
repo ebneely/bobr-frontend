@@ -8,6 +8,12 @@ type Variant = 'solid' | 'outline' | 'light';
 interface ButtonProps {
   children: ReactNode;
   href?: ComponentProps<typeof Link>['href'];
+  /**
+   * An address outside this app (a file on the API or image host), opened in a
+   * new tab. A plain <a>, not the locale-aware Link, which would try to prefix
+   * it with /pl.
+   */
+  externalHref?: string;
   variant?: Variant;
   type?: 'button' | 'submit';
   onClick?: () => void;
@@ -29,6 +35,7 @@ interface ButtonProps {
 export function Button({
   children,
   href,
+  externalHref,
   variant = 'solid',
   type = 'button',
   onClick,
@@ -101,6 +108,20 @@ export function Button({
       {face}
     </>
   );
+
+  if (externalHref) {
+    return (
+      <a
+        href={externalHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`bobr-btn ${className ?? ''}`}
+        style={shell}
+      >
+        {inner}
+      </a>
+    );
+  }
 
   if (href) {
     return (
