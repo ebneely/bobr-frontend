@@ -42,6 +42,10 @@
   --bobr-fg: var(--bobr-green-700);
   --bobr-fg-strong: var(--bobr-green-900);
   --bobr-fg-muted: var(--bobr-green-300);
+  /* Secondary copy that must still pass AA at small sizes. fg-muted measures
+     ~3.9:1 on the cream ground — fine for large type, not for a 13px figure;
+     this is ~5.6:1. */
+  --bobr-fg-soft: var(--bobr-green-500);
   --bobr-accent: var(--bobr-orange-500);
   --bobr-accent-hover: var(--bobr-orange-600);
   --bobr-on-dark: var(--bobr-cream-200);

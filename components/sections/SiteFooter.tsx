@@ -7,6 +7,7 @@ export async function SiteFooter() {
   const tc = await getTranslations('common');
 
   const links = [
+    { href: '/menu', label: tn('menu') },
     { href: '/#how', label: tn('howItWorks') },
     { href: '/#diets', label: tn('diets') },
     { href: '/#pricing', label: tn('pricing') },

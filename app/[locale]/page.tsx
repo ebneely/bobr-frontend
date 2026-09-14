@@ -4,6 +4,7 @@ import { SiteHeader } from '@/components/sections/SiteHeader';
 import { Hero } from '@/components/sections/Hero';
 import { ValueProps } from '@/components/sections/ValueProps';
 import { DietsCarousel } from '@/components/sections/DietsCarousel';
+import { MenuTeaser } from '@/components/sections/MenuTeaser';
 import { TickerBand } from '@/components/sections/TickerBand';
 import { Steps } from '@/components/sections/Steps';
 import { PricingLadder } from '@/components/sections/PricingLadder';
@@ -33,6 +34,7 @@ export default async function HomePage({
         <Hero />
         <ValueProps />
         <DietsCarousel />
+        <MenuTeaser />
         <TickerBand />
         <Steps />
         <PricingLadder />

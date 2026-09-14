@@ -41,6 +41,7 @@ export function SiteHeader() {
 
   const items = [
     { href: '/', label: t('home') },
+    { href: '/menu', label: t('menu') },
     { href: '/#how', label: t('howItWorks') },
     { href: '/#diets', label: t('diets') },
     { href: '/#pricing', label: t('pricing') },
@@ -126,6 +127,7 @@ export function SiteHeader() {
                 href={item.href}
                 className="bobr-navlink"
                 data-active={pathname === item.href ? 'true' : undefined}
+                aria-current={pathname === item.href ? 'page' : undefined}
                 style={{ fontSize: 'var(--bobr-text-body)' }}
               >
                 {item.label}
@@ -206,6 +208,8 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               className="bobr-drawer-link"
+              data-active={pathname === item.href ? 'true' : undefined}
+              aria-current={pathname === item.href ? 'page' : undefined}
               style={{
                 ['--i' as string]: i,
                 fontSize: 'var(--bobr-text-h3)',
