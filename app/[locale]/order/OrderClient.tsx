@@ -9,7 +9,6 @@ import { apiFetch, ApiError, formatApiError } from '@/lib/api/client';
 import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import { apiQuoteZone, type ZoneQuote } from '@/lib/api/delivery-zones';
 import { apiPlaceOrder, formatGrosze, type Order, type OrderMode } from '@/lib/api/orders';
-import { DASHBOARD_URL } from '@/lib/auth/urls';
 import {
   formatDayLabel,
   formatMonthLabel,
@@ -296,9 +295,6 @@ export function OrderClient() {
           </p>
         )}
         <p className="bobr-body">{t('successBody')}</p>
-        <a href={DASHBOARD_URL} style={{ textDecoration: 'none' }}>
-          <Button>{t('goDashboard')}</Button>
-        </a>
       </section>
     );
   }

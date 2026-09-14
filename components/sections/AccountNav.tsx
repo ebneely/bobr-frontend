@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
-import { authClient, signOut } from '@/lib/auth/client';
-import { Link } from '@/lib/i18n/navigation';
-import { DASHBOARD_URL } from '@/lib/auth/urls';
+import { authClient, signOut } from "@/lib/auth/client";
+import { Link } from "@/lib/i18n/navigation";
 
 /**
- * The account corner of the header: a log-in link, or the dashboard and a way
- * out once there is a session.
+ * The account corner of the header: a log-in link, or a way out once there is
+ * a session. No link to the dashboard: the owner wants it hidden from the
+ * storefront (2026-09-14) — staff open it directly and sign in there.
  *
  * One component used by both the desktop bar and the mobile drawer, so the two
  * cannot drift into disagreeing about whether someone is signed in.
@@ -19,14 +19,13 @@ import { DASHBOARD_URL } from '@/lib/auth/urls';
  * as having been logged out.
  */
 export function AccountNav({ tabIndex }: { tabIndex?: number }) {
-  const t = useTranslations('nav');
-  const tc = useTranslations('common');
+  const tc = useTranslations("common");
 
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
     // Holds the space so the header does not reflow when this resolves.
-    return <span aria-hidden style={{ minWidth: '4rem' }} />;
+    return <span aria-hidden style={{ minWidth: "4rem" }} />;
   }
 
   if (!session) {
@@ -35,50 +34,37 @@ export function AccountNav({ tabIndex }: { tabIndex?: number }) {
         href="/login"
         className="bobr-navlink"
         tabIndex={tabIndex}
-        style={{ fontSize: 'var(--bobr-text-body)', whiteSpace: 'nowrap' }}
+        style={{ fontSize: "var(--bobr-text-body)", whiteSpace: "nowrap" }}
       >
-        {tc('login')}
+        {tc("login")}
       </Link>
     );
   }
 
   return (
-    <>
-      {/* A plain anchor, not the localised Link: the dashboard is a separate
-          app on its own origin, so this is not a route in this app. */}
-      <a
-        href={DASHBOARD_URL}
-        className="bobr-navlink"
-        tabIndex={tabIndex}
-        style={{ fontSize: 'var(--bobr-text-body)', whiteSpace: 'nowrap' }}
-      >
-        {t('dashboard')}
-      </a>
-
-      <button
-        type="button"
-        className="bobr-navlink"
-        tabIndex={tabIndex}
-        onClick={() => {
-          void signOut().then(() => {
-            // Full reload rather than a client navigation: every server
-            // component that rendered with a session has to be rebuilt without
-            // one, and a soft push would leave the cached signed-in markup.
-            window.location.assign('/');
-          });
-        }}
-        style={{
-          background: 'none',
-          border: 0,
-          padding: 0,
-          font: 'inherit',
-          fontSize: 'var(--bobr-text-body)',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {tc('logout')}
-      </button>
-    </>
+    <button
+      type="button"
+      className="bobr-navlink"
+      tabIndex={tabIndex}
+      onClick={() => {
+        void signOut().then(() => {
+          // Full reload rather than a client navigation: every server
+          // component that rendered with a session has to be rebuilt without
+          // one, and a soft push would leave the cached signed-in markup.
+          window.location.assign("/");
+        });
+      }}
+      style={{
+        background: "none",
+        border: 0,
+        padding: 0,
+        font: "inherit",
+        fontSize: "var(--bobr-text-body)",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {tc("logout")}
+    </button>
   );
 }

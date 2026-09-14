@@ -24,7 +24,6 @@ import {
 import { formatGrosze } from '@/lib/api/orders';
 import { apiGetPaymentSettings, type PaymentSettings } from '@/lib/api/settings';
 import { authClient } from '@/lib/auth/client';
-import { DASHBOARD_URL } from '@/lib/auth/urls';
 import {
   daysThroughEndOfNextMonth,
   formatDayLabel,
@@ -112,8 +111,6 @@ export function ConsultationClient() {
     }
   }
 
-  const dashboardLink = `${DASHBOARD_URL}/${locale}/dashboard/consultations`;
-
   if (booked) {
     return (
       <section
@@ -139,9 +136,6 @@ export function ConsultationClient() {
           priceGrosze={booked.row.priceGrosze}
           paymentReference={booked.row.paymentReference}
         />
-        <a href={dashboardLink} style={{ textDecoration: 'none' }}>
-          <Button>{t('goDashboard')}</Button>
-        </a>
       </section>
     );
   }

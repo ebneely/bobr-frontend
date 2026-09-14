@@ -7,7 +7,6 @@ import { signUp } from '@/lib/auth/client';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
-import { DASHBOARD_URL } from '@/lib/auth/urls';
 
 const MIN_PASSWORD = 8;
 
@@ -62,10 +61,11 @@ export function RegisterClient({ next }: { next: string | null }) {
     }
 
     // autoSignIn is on, so the session cookie is already set. Full navigation,
-    // because the dashboard is a different origin with its own server render.
+    // so server components re-render signed in. Never the dashboard — it is
+    // hidden from the storefront (owner, 2026-09-14).
     // Back to the page that sent them here when there is one; `next` is
     // validated as a local path on the server before it arrives.
-    window.location.assign(next ?? DASHBOARD_URL);
+    window.location.assign(next ?? '/');
   }
 
   return (

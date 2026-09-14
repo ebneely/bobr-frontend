@@ -7,7 +7,6 @@ import { signIn } from '@/lib/auth/client';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
-import { DASHBOARD_URL } from '@/lib/auth/urls';
 
 export function LoginClient({ next }: { next: string | null }) {
   const t = useTranslations('auth');
@@ -33,13 +32,13 @@ export function LoginClient({ next }: { next: string | null }) {
       return;
     }
 
-    // A full navigation, not a client-side push: the dashboard is a separate
-    // app on its own origin, and its server layout has to read the new session
-    // cookie on a real request.
+    // A full navigation, not a client-side push: every server component that
+    // rendered signed-out has to be rebuilt with the new session cookie. Never
+    // the dashboard — it is hidden from the storefront (owner, 2026-09-14).
     //
     // Back to the page that sent them here (a booking, an order) when there is
     // one; `next` is validated as a local path on the server before it arrives.
-    window.location.assign(next ?? DASHBOARD_URL);
+    window.location.assign(next ?? '/');
   }
 
   return (
