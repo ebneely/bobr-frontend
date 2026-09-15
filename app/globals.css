@@ -195,8 +195,9 @@ html.lenis body { height: auto; }
 
 /* ==========================================================================
    Navigation
-   Breakpoint is 810px: the measured point where the reference swaps the full
-   menu for a hamburger. Declared once here as a media query rather than from
+   Breakpoint is 1200px: the reference's desktop breakpoint, below which it
+   swaps the full menu for a hamburger (BOBR's six links plus two slot items
+   do not fit a tablet bar in Polish). Declared once here as a media query rather than from
    JS, so the correct bar is in the first paint and there is no flash of the
    wrong navigation before hydration.
    ========================================================================== */
@@ -204,7 +205,7 @@ html.lenis body { height: auto; }
 .bobr-nav-desktop { display: flex; }
 .bobr-nav-toggle { display: none; }
 
-@media (max-width: 810px) {
+@media (max-width: 1199px) {
   .bobr-nav-desktop { display: none; }
   .bobr-nav-toggle { display: inline-flex; }
 }
@@ -214,8 +215,8 @@ html.lenis body { height: auto; }
    the control animates between its two meanings instead of swapping icons. */
 .bobr-burger {
   position: relative;
-  width: 24px;
-  height: 16px;
+  width: 16px;
+  height: 14px;
   flex-shrink: 0;
 }
 
@@ -224,8 +225,8 @@ html.lenis body { height: auto; }
   left: 0;
   width: 100%;
   height: 2px;
-  border-radius: 2px;
-  background: var(--bobr-fg);
+  border-radius: 1px;
+  background: var(--bobr-accent);
   transition:
     transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.2s linear,
@@ -233,20 +234,20 @@ html.lenis body { height: auto; }
 }
 
 .bobr-burger span:nth-child(1) { top: 0; }
-.bobr-burger span:nth-child(2) { top: 7px; }
-.bobr-burger span:nth-child(3) { top: 14px; }
+.bobr-burger span:nth-child(2) { top: 6px; }
+.bobr-burger span:nth-child(3) { top: 12px; }
 
 /* Both outer bars travel to the middle first, then cross — rotating in place
-   from their original offsets would make the X sit 7px tall instead of centred. */
+   from their original offsets would make the X sit off-centre. */
 .bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(1) {
-  top: 7px;
+  top: 6px;
   transform: rotate(45deg);
 }
 .bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(2) {
   opacity: 0;
 }
 .bobr-nav-toggle[aria-expanded='true'] .bobr-burger span:nth-child(3) {
-  top: 7px;
+  top: 6px;
   transform: rotate(-45deg);
 }
 
@@ -1252,4 +1253,441 @@ html.lenis body { height: auto; }
   .bobr-dish-dialog[open],
   .bobr-skel { animation: none; }
   .bobr-printed__sheet:hover { transform: none; }
+}
+
+/* ==========================================================================
+   Eyebrow chip
+   A hairline frame with a dot on each corner. Geometry is custom properties so
+   the hero can scale it to the reference's badge without a second component.
+   ========================================================================== */
+.bobr-eyebrow {
+  --chip-fs: var(--bobr-text-body);
+  --chip-fw: var(--bobr-weight-regular);
+  --chip-py: 12px;
+  --chip-px: 28px;
+  --chip-dot: 9px;
+  position: relative;
+  /* Flex, not inline-block: an inline-block's line box picks up the parent
+     strut and grows a couple of px past padding + line-height. */
+  display: inline-flex;
+  align-items: center;
+  padding: var(--chip-py) var(--chip-px);
+  /* Inset rule, not a border, so the box is exactly padding + text tall. */
+  box-shadow: inset 0 0 0 1px var(--bobr-border-accent);
+  color: var(--bobr-fg);
+  font-size: var(--chip-fs);
+  font-weight: var(--chip-fw);
+  line-height: 1.2;
+}
+.bobr-eyebrow__dot {
+  position: absolute;
+  width: var(--chip-dot);
+  height: var(--chip-dot);
+  border-radius: 50%;
+  background: var(--bobr-fg);
+}
+/* Centred on the corner. */
+.bobr-eyebrow__dot[data-corner='tl'],
+.bobr-eyebrow__dot[data-corner='tr'] { top: calc(var(--chip-dot) / -2); }
+.bobr-eyebrow__dot[data-corner='bl'],
+.bobr-eyebrow__dot[data-corner='br'] { bottom: calc(var(--chip-dot) / -2); }
+.bobr-eyebrow__dot[data-corner='tl'],
+.bobr-eyebrow__dot[data-corner='bl'] { left: calc(var(--chip-dot) / -2); }
+.bobr-eyebrow__dot[data-corner='tr'],
+.bobr-eyebrow__dot[data-corner='br'] { right: calc(var(--chip-dot) / -2); }
+
+/* ==========================================================================
+   Header bar + home hero (issue #22)
+   Measured on maestroo.framer.ai at 1920x910, 1440x900 and 390x844 with
+   getBoundingClientRect. Every desktop size is linear between its 1440 value
+   (M) and its 1920 value (L), clamped at both ends:
+
+       clamp(M, calc(M + (L - M) / 480 * (100vw - 1440px)), L)
+
+   so 1440 and 1920 land on the reference exactly, 1280 takes the 1440 frame
+   (as the reference does) and 2560 takes the 1920 frame.
+   ========================================================================== */
+.bobr-top-shell {
+  width: min(var(--bobr-top-max), 100% - 2 * var(--bobr-top-gutter));
+  margin-inline: auto;
+}
+
+/* --- Header -------------------------------------------------------------- */
+.bobr-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--bobr-header-h);
+  background: var(--bobr-bg);
+  box-shadow: var(--bobr-shadow-header);
+}
+.bobr-topbar__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.bobr-logo {
+  font-size: 1.75rem;
+  line-height: 26px;
+  font-weight: var(--bobr-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bobr-fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bobr-topnav { align-items: center; gap: 25px; }
+
+.bobr-toplink {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+  font-size: var(--bobr-text-body);
+  font-weight: var(--bobr-weight-medium);
+  line-height: 1.2;
+  color: var(--bobr-fg);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--bobr-duration) var(--bobr-ease);
+}
+/* The reference's short 20px bar under the active link, centred. */
+.bobr-toplink::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 20px;
+  height: 2px;
+  margin-left: -10px;
+  border-radius: 10px;
+  background: var(--bobr-accent);
+  transform: scaleX(0);
+  transition: transform var(--bobr-duration) var(--bobr-ease);
+}
+.bobr-toplink:hover,
+.bobr-toplink[data-active='true'] { color: var(--bobr-accent); }
+.bobr-toplink:hover::after,
+.bobr-toplink[data-active='true']::after { transform: scaleX(1); }
+
+/* Right slot: icon tile + text, as the reference's single "call" item. */
+.bobr-topslot {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+.bobr-topslot__item {
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: clamp(18px, calc(18px + 0.0041667 * (100vw - 1440px)), 20px);
+  line-height: 1.4;
+  color: var(--bobr-fg);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.bobr-topslot__item:not(.bobr-nav-desktop) { display: inline-flex; }
+.bobr-topslot__tile {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--bobr-radius-control);
+  background: var(--bobr-orange-a05);
+  color: var(--bobr-accent);
+}
+/* AccountNav is shared with the drawer and sets its own inline size; in the
+   slot it takes the slot's fluid size instead. */
+.bobr-topslot__account .bobr-navlink { font-size: inherit !important; }
+
+.bobr-locale { transition: color var(--bobr-duration) var(--bobr-ease); }
+.bobr-locale:hover { color: var(--bobr-accent); }
+
+.bobr-nav-toggle {
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+/* 32px bordered square inside a 44px hit area, as the reference draws it. */
+.bobr-nav-toggle::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--bobr-accent);
+  border-radius: 2px;
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+.bobr-hero {
+  /* Section height below the header: 630 at 1440, 931 at 1920, following the
+     width; never more than the screen plus the ~90px the reference lets the
+     photo run past the fold; never less than the 1440 frame. */
+  --hero-h: max(630px, min(calc(62.7083vw - 273px), calc(100svh + 21px)));
+  /* Photo box: 53% of the viewport at 1440, 48% at 1920 and beyond. */
+  --hero-img-w: max(48vw, min(53vw, calc(33vw + 288px)));
+  --hero-inset: clamp(0px, calc(4.1667vw - 60px), 20px);
+  --hero-col: clamp(552.6px, calc(552.6px + 0.171667 * (100vw - 1440px)), 635px);
+  --hero-left: calc((100vw - min(var(--bobr-top-max), 100vw - 2 * var(--bobr-top-gutter))) / 2);
+
+  --hero-chip-fs: clamp(30px, calc(30px + 0.020833 * (100vw - 1440px)), 40px);
+  --hero-chip-dot: clamp(16px, calc(16px + 0.0083333 * (100vw - 1440px)), 20px);
+  --hero-chip-py: 15px;
+  --hero-chip-px: 38px;
+  --hero-gap-1: clamp(30px, calc(30px + 0.041667 * (100vw - 1440px)), 50px);
+  --hero-title: clamp(45px, calc(45px + 0.0229167 * (100vw - 1440px)), 56px);
+  --hero-gap-2: clamp(20px, calc(20px + 0.041667 * (100vw - 1440px)), 40px);
+  --hero-body: clamp(18px, calc(18px + 0.0041667 * (100vw - 1440px)), 20px);
+  --hero-gap-3: clamp(30px, calc(30px + 0.041667 * (100vw - 1440px)), 50px);
+  --hero-cta-fs: clamp(18px, calc(18px + 0.0041667 * (100vw - 1440px)), 20px);
+  --hero-cta-py: clamp(16px, calc(16px + 0.0125 * (100vw - 1440px)), 22px);
+  --hero-cta-px: clamp(36px, calc(36px + 0.0083333 * (100vw - 1440px)), 40px);
+
+  --hero-ring: clamp(132px, calc(132px + 0.1041667 * (100vw - 1440px)), 182px);
+  --hero-ring-band: clamp(8px, calc(8px + 0.0041667 * (100vw - 1440px)), 10px);
+  --hero-ring-x: clamp(10px, calc(10px + 0.0208333 * (100vw - 1440px)), 20px);
+  --hero-ring-y: clamp(63.5px, calc(63.5px + 0.207292 * (100vw - 1440px)), 163px);
+  --hero-stat-fs: clamp(30px, calc(30px + 0.025 * (100vw - 1440px)), 42px);
+  /* The reference's label is 18 -> 25px, but it only has to fit "ITEMS". Ours
+     is two words ("DIET TYPES", "RODZAJE DIET"), so it runs at 80% of that. */
+  --hero-stat-label: clamp(15px, calc(15px + 0.0104167 * (100vw - 1440px)), 20px);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--hero-h);
+  background: var(--bobr-bg-alt);
+  overflow-x: clip;
+}
+
+/* Centred in header + hero together, as the reference's hero runs under its
+   fixed bar: the extra header-height of bottom padding lifts the copy by half
+   of it. */
+.bobr-hero__shell {
+  padding-top: 24px;
+  padding-bottom: calc(var(--bobr-header-h) + 24px);
+}
+
+.bobr-hero__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: var(--hero-inset);
+  /* The measured column, or whatever is left of the photo box and its stat
+     circle when the window is narrower than the reference's. */
+  width: min(
+    calc(var(--hero-inset) + var(--hero-col)),
+    calc(100vw - var(--hero-img-w) - var(--hero-left) - var(--hero-ring-x) - 16px)
+  );
+}
+
+.bobr-eyebrow--hero {
+  --chip-fs: var(--hero-chip-fs);
+  --chip-fw: 300;
+  --chip-py: var(--hero-chip-py);
+  --chip-px: var(--hero-chip-px);
+  --chip-dot: var(--hero-chip-dot);
+}
+
+.bobr-hero__title {
+  margin-top: var(--hero-gap-1);
+  font-size: var(--hero-title);
+  font-weight: var(--bobr-weight-regular);
+  line-height: var(--bobr-lh-heading);
+  text-transform: uppercase;
+  color: var(--bobr-fg);
+}
+
+.bobr-hero__body {
+  margin-top: var(--hero-gap-2);
+  font-size: var(--hero-body);
+  line-height: var(--bobr-lh-body);
+  color: var(--bobr-fg-muted);
+}
+.bobr-hero__body strong {
+  font-weight: var(--bobr-weight-bold);
+  color: var(--bobr-fg);
+}
+
+.bobr-hero__cta {
+  position: relative;
+  display: inline-block;
+  margin-top: var(--hero-gap-3);
+  text-decoration: none;
+}
+.bobr-hero__cta .bobr-btn-face {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hero-cta-py) var(--hero-cta-px);
+  background: var(--bobr-fg);
+  color: var(--bobr-on-dark);
+  border-radius: var(--bobr-radius-control);
+  font-size: var(--hero-cta-fs);
+  font-weight: var(--bobr-weight-medium);
+  line-height: 1.2;
+  transition: transform var(--bobr-duration) var(--bobr-ease);
+}
+/* The reference's offset is 4px, tighter than the shared Button's 6px. */
+.bobr-hero__cta .bobr-btn-offset {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(4px, 4px, 0);
+  background: var(--bobr-accent);
+  border-radius: var(--bobr-radius-control);
+  pointer-events: none;
+  transition: transform var(--bobr-duration) var(--bobr-ease);
+}
+.bobr-hero__cta:hover .bobr-btn-face,
+.bobr-hero__cta:focus-visible .bobr-btn-face { transform: translate3d(2px, 2px, 0); }
+.bobr-hero__cta:active .bobr-btn-face { transform: translate3d(4px, 4px, 0); }
+
+/* Off the container: anchored to the section's top-right, so it is flush
+   under the header and flush to the viewport edge, and exactly as tall as the
+   section however the copy sizes it. */
+.bobr-hero__media {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--hero-img-w);
+}
+.bobr-hero__slide { position: relative; height: 100%; }
+
+.bobr-hero__frame {
+  /* 450px at 1920 (the reference). A taller box scales it with its height;
+     a shorter one has the browser shrink it to a true half-round. */
+  --hero-radius: max(450px, calc(var(--hero-h) * 0.4834));
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-start-start-radius: var(--hero-radius);
+  border-end-start-radius: var(--hero-radius);
+}
+.bobr-hero__frame > div { height: 100%; }
+.bobr-hero__img {
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.bobr-hero__stat {
+  position: absolute;
+  z-index: 1;
+  left: calc(-1 * var(--hero-ring-x));
+  bottom: var(--hero-ring-y);
+  width: var(--hero-ring);
+  height: var(--hero-ring);
+  padding: var(--hero-ring-band);
+  border-radius: 50%;
+  background: var(--bobr-bg-alt);
+}
+.bobr-hero__stat-core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--bobr-fg);
+  color: var(--bobr-bg-alt);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.bobr-hero__stat-value {
+  font-size: var(--hero-stat-fs);
+  font-weight: var(--bobr-weight-bold);
+  line-height: 1.45;
+}
+.bobr-hero__stat-label {
+  max-width: 82%;
+  font-size: var(--hero-stat-label);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Tablet: side by side, at the reference's tablet scale. */
+@media (max-width: 1199px) {
+  .bobr-hero {
+    --hero-h: max(520px, min(56vw, calc(100svh - var(--bobr-header-h))));
+    --hero-img-w: 53vw;
+    --hero-inset: 0px;
+    --hero-col: 46vw;
+    --hero-chip-fs: 24px;
+    --hero-chip-dot: 14px;
+    --hero-chip-py: 11px;
+    --hero-chip-px: 28px;
+    --hero-gap-1: 24px;
+    --hero-title: clamp(32px, 3.45vw, 38px);
+    --hero-gap-2: 16px;
+    --hero-body: 16px;
+    --hero-gap-3: 24px;
+    --hero-cta-fs: 16px;
+    --hero-cta-py: 13px;
+    --hero-cta-px: 30px;
+    --hero-ring: 116px;
+    --hero-ring-band: 8px;
+    --hero-ring-x: 10px;
+    --hero-ring-y: 40px;
+    --hero-stat-fs: 28px;
+    --hero-stat-label: 12px;
+  }
+}
+
+/* Phone and small tablet: the copy centred, the photo stacked under it as a
+   full-width block with its own viewport-relative height. */
+@media (max-width: 899px) {
+  .bobr-hero {
+    --hero-h: clamp(320px, 98vw, 70svh);
+    --hero-chip-fs: 20px;
+    --hero-chip-dot: 12px;
+    --hero-chip-py: 10px;
+    --hero-chip-px: 28px;
+    --hero-gap-1: 20px;
+    --hero-title: clamp(25px, calc(25px + 0.0176 * (100vw - 390px)), 34px);
+    --hero-gap-2: 10px;
+    --hero-body: clamp(15px, calc(15px + 0.004 * (100vw - 390px)), 17px);
+    --hero-gap-3: 20px;
+    --hero-cta-fs: 16px;
+    --hero-cta-py: 12px;
+    --hero-cta-px: 30px;
+    --hero-ring: 122px;
+    --hero-ring-band: 10px;
+    --hero-ring-y: 13px;
+    --hero-stat-fs: 28px;
+    --hero-stat-label: 11px;
+    display: block;
+    min-height: 0;
+    padding-bottom: 100px;
+  }
+  .bobr-hero__shell { padding-top: 78px; padding-bottom: 0; }
+  .bobr-hero__copy {
+    width: 100%;
+    max-width: 36rem;
+    margin-inline: auto;
+    padding-left: 0;
+    align-items: center;
+    text-align: center;
+  }
+  .bobr-hero__media {
+    position: relative;
+    width: 100%;
+    height: var(--hero-h);
+    margin-top: 30px;
+  }
+  .bobr-hero__stat { left: var(--bobr-top-gutter); }
 }

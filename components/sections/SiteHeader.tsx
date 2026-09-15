@@ -3,15 +3,17 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/lib/i18n/navigation';
-import { useScrolled } from '@/lib/motion/use-scrolled';
 import { LocaleSwitch } from './LocaleSwitch';
 import { AccountNav } from './AccountNav';
 import { getLenis } from '@/components/motion/SmoothScroll';
 
 /**
- * Fixed header with a desktop bar and a mobile drawer.
+ * Sticky header with a desktop bar and a mobile drawer, styled after the
+ * maestroo.framer.ai reference (issue #22): an opaque cream bar with a soft
+ * shadow, logo left, links spread with space-between, an icon-tile slot right.
  *
- * Which of the two shows is decided by a CSS media query at 810px, not by
+ * Which of the two shows is decided by a CSS media query at 1200px (the
+ * reference's desktop breakpoint), not by
  * measuring the window in JS: a JS breakpoint cannot run until hydration, so
  * the first paint would show the wrong navigation and then swap.
  */
@@ -19,7 +21,6 @@ export function SiteHeader() {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const pathname = usePathname();
-  const stuck = useScrolled(24);
 
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(pathname);
@@ -77,104 +78,51 @@ export function SiteHeader() {
 
   return (
     <>
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          height: 'var(--bobr-header-h)',
-          background:
-            stuck || open ? 'rgba(255, 250, 229, 0.92)' : 'transparent',
-          backdropFilter: stuck || open ? 'saturate(180%) blur(12px)' : 'none',
-          borderBottom: `1px solid ${stuck ? 'var(--bobr-border)' : 'transparent'}`,
-          transition:
-            'background var(--bobr-duration) var(--bobr-ease), border-color var(--bobr-duration) var(--bobr-ease)',
-        }}
-      >
-        <div
-          className="bobr-shell"
-          style={{
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1.5rem',
-          }}
-        >
-          <Link
-            href="/"
-            style={{
-              fontSize: 'var(--bobr-text-h4)',
-              fontWeight: 'var(--bobr-weight-bold)',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--bobr-fg)',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
+      <header className="bobr-topbar">
+        <div className="bobr-top-shell bobr-topbar__inner">
+          <Link href="/" className="bobr-logo">
             {tc('appName')}
           </Link>
 
-          <nav
-            aria-label={t('primary')}
-            className="bobr-nav-desktop"
-            style={{ gap: 'clamp(1rem, 2.5vw, 2rem)', alignItems: 'center' }}
-          >
+          <nav aria-label={t('primary')} className="bobr-nav-desktop bobr-topnav">
             {items.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="bobr-navlink"
+                className="bobr-toplink"
                 data-active={pathname === item.href ? 'true' : undefined}
                 aria-current={pathname === item.href ? 'page' : undefined}
-                style={{ fontSize: 'var(--bobr-text-body)' }}
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          <div
-            className="bobr-nav-desktop"
-            style={{ alignItems: 'center', gap: '1.25rem' }}
-          >
-            <AccountNav />
-          </div>
+          {/* The reference's right slot is one "icon tile + text" item. Ours
+              carries two functional ones in that treatment: language and
+              account. The language switch stays reachable at every width —
+              language is not a navigation choice, and a Polish speaker who
+              lands on the English page should not have to open a menu written
+              in English to get back. */}
+          <div className="bobr-topslot">
+            <LocaleSwitch className="bobr-topslot__item" />
 
-          {/* Outside both navs and outside the drawer, so it is reachable at
-              every width. Language is not a navigation choice, and a Polish
-              speaker who lands on the English page should not have to open a
-              menu written in English to get back. */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              flexShrink: 0,
-            }}
-          >
-            <LocaleSwitch />
+            <div className="bobr-nav-desktop bobr-topslot__item bobr-topslot__account">
+              <span aria-hidden className="bobr-topslot__tile">
+                <UserGlyph />
+              </span>
+              <AccountNav />
+            </div>
 
             <button
               ref={toggleRef}
               type="button"
               className="bobr-nav-toggle"
-            aria-expanded={open}
-            aria-controls={drawerId}
-            aria-label={open ? t('menuClose') : t('menuOpen')}
-            onClick={() => setOpen((v) => !v)}
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 44,
-              height: 44,
-              background: 'none',
-              border: 0,
-              padding: 0,
-              cursor: 'pointer',
-            }}
-          >
+              aria-expanded={open}
+              aria-controls={drawerId}
+              aria-label={open ? t('menuClose') : t('menuOpen')}
+              onClick={() => setOpen((v) => !v)}
+            >
               <span className="bobr-burger" aria-hidden>
                 <span />
                 <span />
@@ -244,5 +192,20 @@ export function SiteHeader() {
         </nav>
       </div>
     </>
+  );
+}
+
+/** A person glyph for the account tile. Decorative; the link text names it. */
+function UserGlyph() {
+  return (
+    <svg width="14" height="16" viewBox="0 0 14 16" fill="none" aria-hidden>
+      <circle cx="7" cy="4.5" r="3.25" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M1 15c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
