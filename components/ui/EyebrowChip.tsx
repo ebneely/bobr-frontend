@@ -8,34 +8,29 @@ import type { ReactNode } from 'react';
  * element plus four absolutely-positioned spans rather than an image, so it
  * scales, recolours from tokens, and costs no request.
  *
+ * Geometry lives in `.bobr-eyebrow` (globals.css) as custom properties, so the
+ * hero can enlarge it to the reference's badge (`.bobr-eyebrow--hero`) without a
+ * second component.
+ *
+ * The label renders exactly as written in the messages. It used to be
+ * `text-transform: capitalize`, which turned Polish "Z tego tygodnia" into
+ * "Z Tego Tygodnia" — Polish uses sentence case, and so does the English copy.
+ *
  * Decorative: the text is the label, the frame carries no meaning of its own.
  */
-export function EyebrowChip({ children }: { children: ReactNode }) {
-  const dot = {
-    position: 'absolute' as const,
-    width: 9,
-    height: 9,
-    borderRadius: '50%',
-    background: 'var(--bobr-fg)',
-  };
-
+export function EyebrowChip({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <span
-      style={{
-        position: 'relative',
-        display: 'inline-block',
-        padding: '12px 28px',
-        border: '1px solid var(--bobr-border-accent)',
-        color: 'var(--bobr-fg)',
-        fontSize: 'var(--bobr-text-body)',
-        lineHeight: 1.2,
-        textTransform: 'capitalize',
-      }}
-    >
-      <span aria-hidden style={{ ...dot, top: -5, left: -5 }} />
-      <span aria-hidden style={{ ...dot, top: -5, right: -5 }} />
-      <span aria-hidden style={{ ...dot, bottom: -5, left: -5 }} />
-      <span aria-hidden style={{ ...dot, bottom: -5, right: -5 }} />
+    <span className={className ? `bobr-eyebrow ${className}` : 'bobr-eyebrow'}>
+      <span aria-hidden className="bobr-eyebrow__dot" data-corner="tl" />
+      <span aria-hidden className="bobr-eyebrow__dot" data-corner="tr" />
+      <span aria-hidden className="bobr-eyebrow__dot" data-corner="bl" />
+      <span aria-hidden className="bobr-eyebrow__dot" data-corner="br" />
       {children}
     </span>
   );

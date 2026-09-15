@@ -31,57 +31,35 @@ export function LocaleSwitch({ className }: { className?: string }) {
       locale={target}
       aria-label={label}
       title={label}
-      className={className}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.4rem',
-        // The box grows with the code beside the flag, but never below the
-        // 44px finger target — `width` would have clipped the text instead.
-        minWidth: 44,
-        height: 44,
-        padding: '0 0.5rem',
-        flexShrink: 0,
-        borderRadius: 'var(--bobr-radius-control)',
-        textDecoration: 'none',
-        transition: 'background var(--bobr-duration) var(--bobr-ease)',
-      }}
+      className={className ? `bobr-locale ${className}` : 'bobr-locale'}
     >
-      {/* 44px hit area, 26px flag. The target stays finger-sized while the
-          glyph stays the size the design wants — shrinking the box to fit the
-          artwork is how a control becomes hard to tap. */}
-      {target === 'pl' ? <PolishFlag /> : <BritishFlag />}
+      {/* The flag sits in the header's icon tile; the hit area around it stays
+          44px tall (see `.bobr-locale`) so the target is finger-sized while
+          the glyph stays the size the design wants. */}
+      <span aria-hidden className="bobr-topslot__tile">
+        {target === 'pl' ? <PolishFlag /> : <BritishFlag />}
+      </span>
 
       {/* The code names the language the flag stands for, which a flag alone
           does not: the Union Flag is a country, not "English". It is decorative
           to a screen reader — the link's aria-label already says the whole
           thing, and announcing "EN" after it would just be noise. */}
-      <span
-        aria-hidden
-        style={{
-          fontSize: 'var(--bobr-text-xs)',
-          fontWeight: 'var(--bobr-weight-semibold)',
-          letterSpacing: '0.04em',
-          lineHeight: 1,
-          color: 'var(--bobr-fg)',
-        }}
-      >
+      <span aria-hidden className="bobr-locale__code">
         {target === 'pl' ? 'PL' : 'EN'}
       </span>
     </Link>
   );
 }
 
-const FLAG_W = 26;
-const FLAG_H = 18;
+const FLAG_W = 20;
+const FLAG_H = 14;
 
 /**
  * A hairline border, because both flags are half white and would otherwise
  * dissolve into the cream header with no edge at all.
  */
 const frame = {
-  borderRadius: 3,
+  borderRadius: 2,
   border: '1px solid var(--bobr-green-a12)',
   display: 'block',
 } as const;

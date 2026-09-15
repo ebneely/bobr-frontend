@@ -30,6 +30,7 @@
   --bobr-green-a06: rgba(51, 82, 48, 0.06);
   --bobr-green-a12: rgba(51, 82, 48, 0.12);
   --bobr-green-a40: rgba(51, 82, 48, 0.4);
+  --bobr-orange-a05: rgba(255, 139, 32, 0.05);  /* header icon tile */
 
   /* --- Semantic roles -----------------------------------------------------
      Components reference THESE, never the palette above, so a palette change
@@ -92,6 +93,12 @@
   /* Fixed header height. The mobile drawer hangs off this, so it has to be a
      token rather than a number repeated in two places that can drift apart. */
   --bobr-header-h: 62px;
+  /* Header + home hero frame, measured on maestroo.framer.ai (issue #22):
+     1256px of content at 1440, 1336px at 1920, fluid between, never closer
+     than the gutter to the edge (20px on a phone, 40px from 810px up). */
+  --bobr-top-max: clamp(1256px, calc(1016px + 16.6667vw), 1336px);
+  --bobr-top-gutter: clamp(20px, calc(4.7619vw + 1.43px), 40px);
+  --bobr-shadow-header: 0 0 24px rgba(0, 0, 0, 0.06);
   /* The measured point where the full menu gives way to a hamburger. Kept here
      for reference; the media query itself cannot read a custom property. */
   --bobr-nav-breakpoint: 810px;
@@ -135,6 +142,11 @@
 
   --bobr-shadow-sm: 0 1px 2px rgba(30, 58, 28, 0.06);
   --bobr-shadow: 0 10px 30px rgba(30, 58, 28, 0.08);
+}
+
+/* The reference's desktop bar is 70px tall; tablet and phone keep 62px. */
+@media (min-width: 1200px) {
+  :root { --bobr-header-h: 70px; }
 }
 
 /* Motion is decoration. Anyone who has asked the OS to stop it gets a page that
