@@ -14,9 +14,12 @@ import {
   type PasswordChangeProblem,
 } from '@/lib/api/password';
 import { intakeState } from '@/lib/api/account-status';
+import { ApiError, formatApiError } from '@/lib/api/client';
+import type { MeLocale } from '@/lib/api/me';
+import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import { authClient } from '@/lib/auth/client';
-import { useMyIntake } from '@/lib/hooks/use-account';
-import { Link } from '@/lib/i18n/navigation';
+import { useMe, useMyIntake, useUpdateMe } from '@/lib/hooks/use-account';
+import { Link, useRouter } from '@/lib/i18n/navigation';
 import { SectionHead, StatusBadge } from '../_components/ui';
 
 export function ProfileClient({
@@ -41,19 +44,7 @@ export function ProfileClient({
 
       <div className="bobr-agrid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(1rem, 2vw, 1.5rem)', minWidth: 0 }}>
-          <article className="bobr-acard" data-testid="profile-details">
-            <h3 className="bobr-acard__title">{t('profile.detailsTitle')}</h3>
-            <dl className="bobr-arows">
-              <div>
-                <dt>{t('profile.name')}</dt>
-                <dd data-testid="profile-name">{name?.trim() || t('profile.noName')}</dd>
-              </div>
-              <div>
-                <dt>{t('profile.email')}</dt>
-                <dd data-testid="profile-email">{email ?? '—'}</dd>
-              </div>
-            </dl>
-          </article>
+          <DetailsForm email={email} fallbackName={name} />
 
           <article className="bobr-acard" data-testid="profile-intake">
             <div className="bobr-acard__head">
@@ -74,6 +65,151 @@ export function ProfileClient({
         <ChangePasswordForm />
       </div>
     </section>
+  );
+}
+
+const LOCALE_ROUTE: Record<MeLocale, string> = { PL: 'pl', EN: 'en' };
+
+/** G09 — name, phone and language, PATCHed to `/v1/me`. */
+function DetailsForm({ email, fallbackName }: { email: string | null; fallbackName: string | null }) {
+  const t = useTranslations('account');
+  const translateError = useApiErrorTranslate();
+  const router = useRouter();
+  const me = useMe();
+  const update = useUpdateMe();
+
+  // `null` means "not edited in this browser yet" — the field then falls back
+  // to the server's own value on every render. No effect needed to seed the
+  // form once the query resolves, and no cascading-render footgun either.
+  const [fullNameEdit, setFullNameEdit] = useState<string | null>(null);
+  const [phoneEdit, setPhoneEdit] = useState<string | null>(null);
+  const [localeEdit, setLocaleEdit] = useState<MeLocale | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const fullName = fullNameEdit ?? me.data?.fullName ?? '';
+  const phone = phoneEdit ?? me.data?.phone ?? '';
+  const locale = localeEdit ?? me.data?.locale ?? 'PL';
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaved(false);
+    const current = me.data;
+    if (!current) return;
+
+    const patch: { fullName?: string; phone?: string; locale?: MeLocale } = {};
+    if (fullName.trim() !== (current.fullName ?? '')) patch.fullName = fullName.trim();
+    if (phone.trim() !== (current.phone ?? '')) patch.phone = phone.trim();
+    if (locale !== current.locale) patch.locale = locale;
+
+    // Nothing changed: the API would answer EMPTY_UPDATE, so skip the round trip.
+    if (Object.keys(patch).length === 0) {
+      setSaved(true);
+      return;
+    }
+
+    try {
+      const next = await update.mutateAsync(patch);
+      setSaved(true);
+      if (patch.locale) {
+        router.replace('/account/profile', { locale: LOCALE_ROUTE[next.locale] });
+      }
+    } catch {
+      // The status line below reads update.error.
+    }
+  }
+
+  const apiMessage =
+    update.error instanceof ApiError ? formatApiError(update.error.body, translateError) : null;
+
+  return (
+    <form className="bobr-acard bobr-aform" onSubmit={submit} noValidate data-testid="profile-details">
+      <div>
+        <h3 className="bobr-acard__title">{t('profile.detailsTitle')}</h3>
+      </div>
+
+      <Field label={t('profile.email')} value={email ?? '—'} disabled readOnly />
+
+      <Field
+        label={t('profile.name')}
+        name="fullName"
+        autoComplete="name"
+        value={fullName || fallbackName || ''}
+        onChange={(e) => {
+          setFullNameEdit(e.target.value);
+          setSaved(false);
+        }}
+      />
+
+      <Field
+        label={t('profile.phone')}
+        type="tel"
+        name="phone"
+        autoComplete="tel"
+        placeholder="+48 600 000 000"
+        value={phone}
+        onChange={(e) => {
+          setPhoneEdit(e.target.value);
+          setSaved(false);
+        }}
+        hint={t('profile.phoneHint')}
+      />
+
+      <div>
+        <span
+          style={{
+            display: 'block',
+            marginBottom: '0.4rem',
+            fontSize: 'var(--bobr-text-sm)',
+            fontWeight: 'var(--bobr-weight-medium)',
+            color: 'var(--bobr-fg)',
+          }}
+        >
+          {t('profile.language')}
+        </span>
+        <div style={{ display: 'flex', gap: '0.75rem' }} data-testid="profile-language">
+          {(['PL', 'EN'] as const).map((option) => (
+            <label
+              key={option}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.6rem 1rem',
+                cursor: 'pointer',
+                borderRadius: 'var(--bobr-radius-control)',
+                border: `1px solid ${locale === option ? 'var(--bobr-accent)' : 'var(--bobr-border)'}`,
+                fontSize: 'var(--bobr-text-sm)',
+              }}
+            >
+              <input
+                type="radio"
+                name="locale"
+                value={option}
+                checked={locale === option}
+                onChange={() => {
+                  setLocaleEdit(option);
+                  setSaved(false);
+                }}
+              />
+              {t(`profile.language${option}`)}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <p
+        className="bobr-aform__status"
+        role="status"
+        aria-live="polite"
+        data-tone={saved ? 'ok' : apiMessage ? 'error' : undefined}
+        data-testid="profile-details-status"
+      >
+        {apiMessage ?? (saved ? t('profile.detailsSaved') : '')}
+      </p>
+      <div className="bobr-aaction">
+        <Button type="submit">{update.isPending ? t('profile.submitting') : t('profile.detailsSubmit')}</Button>
+      </div>
+    </form>
   );
 }
 

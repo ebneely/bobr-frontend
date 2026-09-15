@@ -5,14 +5,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api/client';
 import { apiListMyConsultations } from '@/lib/api/consultations';
 import { apiGetMyIntake, type IntakeProfile } from '@/lib/api/intake';
+import { apiGetMe, apiUpdateMe, type UpdateMeInput } from '@/lib/api/me';
 import {
+  apiCancelOrder,
   apiGetMyOrder,
   apiListMyNotes,
   apiListMyOrders,
+  apiMoveDay,
   apiRaiseNote,
+  apiSkipDay,
+  apiTrackDay,
+  type Consumption,
   type NoteKind,
 } from '@/lib/api/orders';
 import { apiGetPaymentSettings } from '@/lib/api/settings';
+import { apiCreateWeightEntry, apiListWeightEntries, type CreateWeightEntryInput } from '@/lib/api/weight';
 
 /**
  * The customer's own rows, for the account area. Every route is scoped by the
@@ -32,6 +39,8 @@ export const accountKeys = {
   notes: () => [...accountKeys.all, 'notes'] as const,
   intake: () => [...accountKeys.all, 'intake'] as const,
   payment: () => [...accountKeys.all, 'payment'] as const,
+  me: () => [...accountKeys.all, 'me'] as const,
+  weight: () => [...accountKeys.all, 'weight'] as const,
 };
 
 /** Never retry an auth or not-found answer: asking again will not change it. */
@@ -109,5 +118,86 @@ export function useRaiseNote() {
     mutationFn: (input: { kind: NoteKind; body: string; orderId?: string | null }) =>
       apiRaiseNote(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: accountKeys.notes() }),
+  });
+}
+
+/** G09 — the customer's own profile: name, phone, language. */
+export function useMe(enabled = true) {
+  return useQuery({
+    queryKey: accountKeys.me(),
+    queryFn: apiGetMe,
+    enabled,
+    retry: retryUnlessFinal,
+  });
+}
+
+export function useUpdateMe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateMeInput) => apiUpdateMe(input),
+    onSuccess: (me) => qc.setQueryData(accountKeys.me(), me),
+  });
+}
+
+/** G32 — weight check-ins, newest first. */
+export function useMyWeight() {
+  return useQuery({
+    queryKey: accountKeys.weight(),
+    queryFn: apiListWeightEntries,
+    staleTime: FRESH,
+    retry: retryUnlessFinal,
+  });
+}
+
+export function useAddWeightEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateWeightEntryInput) => apiCreateWeightEntry(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: accountKeys.weight() }),
+  });
+}
+
+/**
+ * G19 — skip / move / cancel a delivery day. Every one of these answers with
+ * the WHOLE order (the backend re-derives it), so the mutation writes that
+ * order straight into the cache rather than only invalidating: the day list
+ * updates in the same tick the mutation resolves, with no refetch flash.
+ */
+function useOrderWrite<TVars>(mutationFn: (vars: TVars) => ReturnType<typeof apiGetMyOrder>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: (order) => {
+      qc.setQueryData(accountKeys.order(order.id), order);
+      void qc.invalidateQueries({ queryKey: accountKeys.orders() });
+    },
+  });
+}
+
+export function useSkipDay() {
+  return useOrderWrite((vars: { orderId: string; dayId: string }) =>
+    apiSkipDay(vars.orderId, vars.dayId),
+  );
+}
+
+export function useMoveDay() {
+  return useOrderWrite((vars: { orderId: string; dayId: string; to: string }) =>
+    apiMoveDay(vars.orderId, vars.dayId, vars.to),
+  );
+}
+
+export function useCancelOrder() {
+  return useOrderWrite((vars: { orderId: string; reason: string }) =>
+    apiCancelOrder(vars.orderId, vars.reason),
+  );
+}
+
+/** G31 — meal tracking on one delivery day. Refetches the order it belongs to. */
+export function useTrackDay(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { dayId: string; consumption: Consumption; note?: string | null }) =>
+      apiTrackDay(vars.dayId, vars.consumption, vars.note),
+    onSuccess: () => qc.invalidateQueries({ queryKey: accountKeys.order(orderId) }),
   });
 }

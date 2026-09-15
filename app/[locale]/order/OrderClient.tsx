@@ -10,7 +10,13 @@ import { ApiError, formatApiError } from '@/lib/api/client';
 import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import { apiQuoteZone, type ZoneQuote } from '@/lib/api/delivery-zones';
 import { mealName } from '@/lib/api/meals';
-import { formatGrosze, type OrderDelivery, type OrderMode, type PlacedOrder } from '@/lib/api/orders';
+import {
+  formatGrosze,
+  type OrderDelivery,
+  type OrderMode,
+  type PlaceOrderInput,
+  type PlacedOrder,
+} from '@/lib/api/orders';
 import {
   formatDayLabel,
   formatMonthLabel,
@@ -25,6 +31,7 @@ import {
   validateAddress,
   type AddressField,
 } from '@/lib/delivery';
+import { useMe } from '@/lib/hooks/use-account';
 import { useMeals, useOrderQuote, usePlaceOrder } from '@/lib/hooks/use-order';
 import {
   breakdownOf,
@@ -90,6 +97,11 @@ export function OrderClient({
   const [addressLine, setAddressLine] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
+  // `null` means "not edited in this browser yet" — falls back to the
+  // profile's own phone (once it loads) on every render, with no effect
+  // needed to seed it.
+  const [contactPhoneEdit, setContactPhoneEdit] = useState<string | null>(null);
+  const [deliveryNotes, setDeliveryNotes] = useState('');
   /** Field errors are shown only after an attempt to place, not while typing. */
   const [showAddressErrors, setShowAddressErrors] = useState(false);
   const [zoneCheck, setZoneCheck] = useState<ZoneCheck>({ state: 'idle' });
@@ -99,6 +111,16 @@ export function OrderClient({
   const [intakeRefused, setIntakeRefused] = useState(false);
 
   const place = usePlaceOrder();
+
+  // G14 — prefill the contact phone from the profile, so a customer who
+  // already gave a number does not have to retype it. Editing afterwards wins.
+  const me = useMe(signedIn);
+  const contactPhone = contactPhoneEdit ?? me.data?.phone ?? '';
+
+  // G38 — one id for the lifetime of this page. A double click on "place" or a
+  // retry after a timeout resends the SAME id, so the server answers with the
+  // order it already created instead of a second one.
+  const clientRequestId = useMemo(() => crypto.randomUUID(), []);
 
   // Ask which zone a complete postal code falls in. Debounced, and a newer
   // code aborts the older request so a slow answer cannot overwrite a fresh one.
@@ -237,8 +259,16 @@ export function OrderClient({
 
     try {
       // The body that was quoted, not a fresh copy of the form: the figures
-      // above the button are for exactly this.
-      const order = await place.mutateAsync(request.input);
+      // above the button are for exactly this. Phone/notes/clientRequestId
+      // ride along too — none of them are priced, so they never touched the
+      // quote.
+      const input: PlaceOrderInput = {
+        ...request.input,
+        contactPhone: contactPhone.trim() || undefined,
+        deliveryNotes: deliveryNotes.trim() || undefined,
+        clientRequestId,
+      };
+      const order = await place.mutateAsync(input);
       setPlaced(order);
     } catch (e) {
       const refusal = classifyQuoteError(e);
@@ -590,6 +620,33 @@ export function OrderClient({
               </>
             )}
           </p>
+        </div>
+      </fieldset>
+
+      <fieldset data-testid="delivery-extras" style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
+        <legend className="bobr-h4" style={{ marginBottom: '0.875rem' }}>
+          {t('extrasTitle')}
+        </legend>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <Field
+            label={`${t('contactPhone')} (${t('optionalField')})`}
+            type="tel"
+            name="contactPhone"
+            autoComplete="tel"
+            placeholder="+48 600 000 000"
+            value={contactPhone}
+            onChange={(e) => setContactPhoneEdit(e.target.value)}
+            hint={t('contactPhoneHint')}
+          />
+          <Field
+            label={`${t('deliveryNotes')} (${t('optionalField')})`}
+            name="deliveryNotes"
+            autoComplete="off"
+            maxLength={300}
+            value={deliveryNotes}
+            onChange={(e) => setDeliveryNotes(e.target.value)}
+            hint={t('deliveryNotesHint')}
+          />
         </div>
       </fieldset>
 

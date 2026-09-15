@@ -122,7 +122,13 @@
     "summaryTotal": "Total to pay",
     "summaryPayment": "Payment on delivery. The amount includes delivery.",
     "successCta": "View order",
-    "summaryAddress": "Address: {address} · {zone} zone"
+    "summaryAddress": "Address: {address} · {zone} zone",
+    "extrasTitle": "Additional details",
+    "optionalField": "optional",
+    "contactPhone": "Contact phone",
+    "contactPhoneHint": "A number the courier can reach you on.",
+    "deliveryNotes": "Notes for the courier",
+    "deliveryNotesHint": "E.g. gate code or floor. Up to 300 characters."
   },
   "consultation": {
     "eyebrow": "Consultation",
@@ -440,7 +446,11 @@
     "signIn": "Sign in or create an account",
     "completeYesNext": "Profile complete — you can go back to your order.",
     "completeNoNext": "Before you order, complete your profile: measurements, activity and four photos. Then you will go back to your order.",
-    "continueOrder": "Back to your order"
+    "continueOrder": "Back to your order",
+    "allergens": "Allergens",
+    "allergensHint": "Tick the allergens this diet must avoid. The \"For allergy sufferers\" diet needs at least one allergen ticked, or described in the notes.",
+    "dietaryNotes": "Dietary notes",
+    "dietaryNotesHint": "Something not on the allergen list? Describe it here."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -494,6 +504,20 @@
       "DAYS_TOO_MANY": "You can choose at most {maximum, plural, one {# day} other {# days}}.",
       "DAYS_DUPLICATE": "The same day was chosen more than once.",
       "BLIK_PHONE_FORMAT": "Enter a valid BLIK phone number.",
+      "PHONE_FORMAT": "Enter a valid Polish phone number, e.g. +48 600 000 000.",
+      "EMPTY_UPDATE": "Change at least one field.",
+      "ORDER_CHANGE_TOO_LATE": "Too late to change — the deadline was {deadline}.",
+      "ORDER_ALREADY_CANCELLED": "This order is already cancelled.",
+      "DAY_NOT_SCHEDULED": "This day is no longer scheduled.",
+      "DAY_ALREADY_SCHEDULED": "You already have a delivery scheduled for that day.",
+      "DAY_IN_FUTURE": "This day has not happened yet.",
+      "DAY_CANCELLED": "This day was cancelled.",
+      "CONSUMPTION_REQUIRED": "Say whether the meal was eaten.",
+      "WEIGHT_ENTRY_NOT_FOUND": "We could not find that weight entry.",
+      "ALLERGENS_REQUIRED": "Tick allergens or describe them in the notes — this diet requires it.",
+      "DELIVERY_DAY_NOT_FOUND": "We could not find that delivery day.",
+      "ORDER_STATUS_TRANSITION": "That status change cannot be made right now.",
+      "NOTE_BODY_EMPTY": "Write something.",
       "REQUIRED": "This field is required.",
       "INVALID_TYPE": "That value is not valid.",
       "TOO_SHORT": "Too short — at least {minimum, plural, one {# character} other {# characters}}.",
@@ -516,6 +540,13 @@
       "preferredAt": "Time",
       "note": "Message",
       "context": "Consultation topic",
+      "contactPhone": "Contact phone",
+      "deliveryNotes": "Notes for the courier",
+      "reason": "Reason",
+      "phone": "Phone",
+      "fullName": "Full name",
+      "to": "New date",
+      "measuredOn": "Measurement date",
       "weightKg": "Weight",
       "heightCm": "Height",
       "bodyComposition": "Body composition",
@@ -534,6 +565,7 @@
       "overview": "Overview",
       "orders": "Orders",
       "consultations": "Consultations",
+      "weight": "Weight",
       "notes": "Messages",
       "profile": "Profile"
     },
@@ -570,6 +602,18 @@
       "note": {
         "answered": "Replied",
         "awaiting": "Awaiting reply"
+      },
+      "orderDay": {
+        "SCHEDULED": "Scheduled",
+        "DELIVERED": "Delivered",
+        "FAILED": "Failed",
+        "SKIPPED": "Skipped",
+        "CANCELLED": "Cancelled"
+      },
+      "consumption": {
+        "EATEN": "Eaten",
+        "SKIPPED": "Skipped",
+        "UNRECORDED": "Not recorded"
       },
       "intake": {
         "complete": "Complete",
@@ -649,7 +693,27 @@
       "paymentTitle": "Payment",
       "paymentCod": "Cash on delivery",
       "paymentCodBody": "You pay the courier on delivery. Nothing is charged up front.",
-      "raiseNote": "Write about this order"
+      "raiseNote": "Write about this order",
+      "contactPhone": "Contact phone",
+      "deliveryNotes": "Notes for the courier",
+      "adjustedTotal": "To pay (after cancelling)",
+      "cancelledOn": "Cancelled {date}",
+      "markEaten": "Eaten",
+      "markSkipped": "Skipped",
+      "actionFailed": "Could not save that change. Try again.",
+      "working": "Saving…",
+      "cancelAction": "Back",
+      "skipDay": "Skip this day",
+      "skipConfirmBody": "This day will be skipped and moved to the end of the plan — the number of delivery days stays the same.",
+      "skipConfirm": "Yes, skip this day",
+      "moveDay": "Move",
+      "moveConfirmBody": "Pick a new delivery day. A change is possible up to 2 days before delivery.",
+      "movePick": "Choose a day",
+      "moveConfirm": "Move to the chosen day",
+      "cancelTitle": "Cancel remaining days",
+      "cancelBody": "This cancels every not-yet-delivered day of this order. Days already delivered stay billable. A change is possible up to 2 days before the next scheduled delivery.",
+      "cancelReasonPlaceholder": "Reason for cancelling (optional, say more)",
+      "cancelConfirm": "Yes, cancel the remaining days"
     },
     "consultations": {
       "title": "Consultations",
@@ -706,6 +770,13 @@
       "name": "Full name",
       "email": "Email address",
       "noName": "Not given",
+      "phone": "Phone",
+      "phoneHint": "A Polish number, e.g. +48 600 000 000.",
+      "language": "Language",
+      "languagePL": "Polish",
+      "languageEN": "English",
+      "detailsSubmit": "Save details",
+      "detailsSaved": "Details saved.",
       "intakeTitle": "Health profile",
       "intakeBody": "Weight, height, activity and the photos we need before an order.",
       "intakeLink": "Go to your health profile",
@@ -725,6 +796,28 @@
       "errSame": "The new password must differ from the current one.",
       "errWrongCurrent": "The current password is incorrect.",
       "errGeneric": "The password could not be changed. Please try again."
+    },
+    "weight": {
+      "title": "Weight",
+      "subtitle": "Record your weight and follow the trend. One entry per day — a second one on the same day replaces it.",
+      "addTitle": "Add a check-in",
+      "addBody": "A check-in is recorded for today (Polish time).",
+      "weightKg": "Weight (kg)",
+      "weightHint": "In kilograms, e.g. 78.5",
+      "errWeight": "Enter your weight in kilograms.",
+      "note": "Note",
+      "optional": "optional",
+      "save": "Save check-in",
+      "saving": "Saving…",
+      "saved": "Check-in saved.",
+      "historyTitle": "History",
+      "emptyTitle": "No check-ins yet",
+      "emptyBody": "Add your first weight check-in — history will appear here.",
+      "today": "Today",
+      "kg": "{value} kg",
+      "trendTitle": "Trend",
+      "trendNeedMore": "Add at least two check-ins to see a trend.",
+      "trendRange": "Range: {min}–{max} kg"
     }
   }
 }

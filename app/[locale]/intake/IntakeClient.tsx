@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
 import { GateCard } from '@/components/ui/GateCard';
-import { ApiError, formatApiError } from '@/lib/api/client';
+import { ApiError, apiAssetUrl, formatApiError } from '@/lib/api/client';
 import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import {
   PHOTO_POSITIONS,
@@ -17,6 +17,7 @@ import {
   type IntakeProfile,
   type PhotoPosition,
 } from '@/lib/api/intake';
+import { ALLERGENS, type Allergen } from '@/lib/api/menu';
 
 /** The order the checkboxes appear in. NONE first: it is the opt-out. */
 const ACTIVITIES: readonly ActivityType[] = [
@@ -57,6 +58,7 @@ export function IntakeClient({
   returnPath: string;
 }) {
   const t = useTranslations('intake');
+  const tm = useTranslations('menu');
   const translateError = useApiErrorTranslate();
 
   const [load, setLoad] = useState<Load>('loading');
@@ -67,6 +69,8 @@ export function IntakeClient({
   const [composition, setComposition] = useState('');
   const [activities, setActivities] = useState<ActivityType[]>([]);
   const [other, setOther] = useState('');
+  const [allergens, setAllergens] = useState<Allergen[]>([]);
+  const [dietaryNotes, setDietaryNotes] = useState('');
 
   // Errors stay hidden until the first save attempt, so an untouched form is
   // not already shouting. The NONE/sport conflict is the exception below —
@@ -118,6 +122,15 @@ export function IntakeClient({
     setComposition(p.bodyComposition ?? '');
     setActivities(p.activityTypes ?? []);
     setOther(p.activityOther ?? '');
+    setAllergens(p.allergens ?? []);
+    setDietaryNotes(p.dietaryNotes ?? '');
+  }
+
+  function toggleAllergen(a: Allergen) {
+    setSaved(false);
+    setAllergens((previous) =>
+      previous.includes(a) ? previous.filter((x) => x !== a) : [...previous, a],
+    );
   }
 
   // --- Validation, derived during render -----------------------------------
@@ -179,6 +192,8 @@ export function IntakeClient({
         bodyComposition: composition.trim() === '' ? null : composition.trim(),
         activityTypes: activities,
         activityOther: has('OTHER') ? other.trim() : null,
+        allergens,
+        dietaryNotes: dietaryNotes.trim() === '' ? null : dietaryNotes.trim(),
       });
       applyProfile(next);
       setSaved(true);
@@ -425,6 +440,70 @@ export function IntakeClient({
           )}
         </fieldset>
 
+        <fieldset style={{ border: 0, margin: 0, padding: 0 }} data-testid="allergens-fieldset">
+          <legend className="bobr-h4" style={{ marginBottom: '0.875rem' }}>
+            {t('allergens')}
+          </legend>
+          <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginBottom: '0.875rem' }}>
+            {t('allergensHint')}
+          </p>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 11rem), 1fr))',
+              gap: '0.6rem',
+            }}
+          >
+            {ALLERGENS.map((a) => {
+              const on = allergens.includes(a);
+              return (
+                <label
+                  key={a}
+                  data-allergen={a}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.6rem',
+                    padding: '0.75rem 0.9rem',
+                    cursor: 'pointer',
+                    borderRadius: 'var(--bobr-radius-sm)',
+                    border: `1px solid ${on ? 'var(--bobr-accent)' : 'var(--bobr-border)'}`,
+                    background: 'var(--bobr-surface)',
+                    fontSize: 'var(--bobr-text-sm)',
+                    color: 'var(--bobr-fg)',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    name="allergens"
+                    value={a}
+                    checked={on}
+                    onChange={() => toggleAllergen(a)}
+                    style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--bobr-accent)' }}
+                  />
+                  {tm(`allergen.${a}`)}
+                </label>
+              );
+            })}
+          </div>
+
+          <div style={{ marginTop: '1.25rem' }}>
+            <Field
+              label={`${t('dietaryNotes')} (${t('optional')})`}
+              type="text"
+              name="dietaryNotes"
+              autoComplete="off"
+              value={dietaryNotes}
+              onChange={(e) => {
+                setDietaryNotes(e.target.value);
+                setSaved(false);
+              }}
+              hint={t('dietaryNotesHint')}
+            />
+          </div>
+        </fieldset>
+
         <div
           style={{
             display: 'flex',
@@ -486,6 +565,7 @@ export function IntakeClient({
           {PHOTO_POSITIONS.map((position) => {
             const gone = missing.includes(position);
             const busy = uploading === position;
+            const photoPath = profile?.photos[position];
             return (
               <li
                 key={position}
@@ -502,6 +582,24 @@ export function IntakeClient({
                   background: 'var(--bobr-surface)',
                 }}
               >
+                {photoPath ? (
+                  // A plain <img>, never next/image: the bytes are behind the
+                  // session cookie at a same-origin proxied path, not a static
+                  // asset next/image could optimise.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={apiAssetUrl(photoPath)}
+                    alt=""
+                    data-testid={`photo-preview-${position}`}
+                    style={{
+                      width: '2.75rem',
+                      height: '2.75rem',
+                      objectFit: 'cover',
+                      borderRadius: 'var(--bobr-radius-sm)',
+                      flex: '0 0 auto',
+                    }}
+                  />
+                ) : null}
                 <span
                   aria-hidden
                   style={{

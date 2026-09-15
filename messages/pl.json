@@ -122,7 +122,13 @@
     "summaryTotal": "Razem do zapłaty",
     "summaryPayment": "Płatność przy odbiorze. Kwota zawiera koszt dostawy.",
     "successCta": "Zobacz zamówienie",
-    "summaryAddress": "Adres: {address} · strefa {zone}"
+    "summaryAddress": "Adres: {address} · strefa {zone}",
+    "extrasTitle": "Dodatkowe informacje",
+    "optionalField": "opcjonalnie",
+    "contactPhone": "Telefon kontaktowy",
+    "contactPhoneHint": "Numer, pod którym kurier może się skontaktować.",
+    "deliveryNotes": "Uwagi dla kuriera",
+    "deliveryNotesHint": "Np. kod do bramy albo piętro. Maksymalnie 300 znaków."
   },
   "consultation": {
     "eyebrow": "Konsultacja",
@@ -440,7 +446,11 @@
     "signIn": "Zaloguj się lub załóż konto",
     "completeYesNext": "Profil kompletny — możesz wrócić do zamówienia.",
     "completeNoNext": "Zanim złożysz zamówienie, uzupełnij profil: pomiary, aktywność i cztery zdjęcia. Potem wrócisz do zamówienia.",
-    "continueOrder": "Wróć do zamówienia"
+    "continueOrder": "Wróć do zamówienia",
+    "allergens": "Alergeny",
+    "allergensHint": "Zaznacz alergeny, których dieta musi unikać. Dieta „Dla alergików” wymaga zaznaczenia co najmniej jednego alergenu albo opisania go w uwagach.",
+    "dietaryNotes": "Uwagi dietetyczne",
+    "dietaryNotesHint": "Coś, czego nie ma na liście alergenów? Opisz to tutaj."
   },
   "errors": {
     "generic": "Coś poszło nie tak. Spróbuj ponownie.",
@@ -494,6 +504,20 @@
       "DAYS_TOO_MANY": "Możesz wybrać najwyżej {maximum, plural, one {# dzień} other {# dni}}.",
       "DAYS_DUPLICATE": "Ten sam dzień wybrano więcej niż raz.",
       "BLIK_PHONE_FORMAT": "Podaj poprawny numer telefonu do BLIK.",
+      "PHONE_FORMAT": "Podaj poprawny polski numer telefonu, np. +48 600 000 000.",
+      "EMPTY_UPDATE": "Zmień przynajmniej jedno pole.",
+      "ORDER_CHANGE_TOO_LATE": "Za późno na zmianę — termin minął {deadline}.",
+      "ORDER_ALREADY_CANCELLED": "To zamówienie jest już anulowane.",
+      "DAY_NOT_SCHEDULED": "Ten dzień nie jest już zaplanowany.",
+      "DAY_ALREADY_SCHEDULED": "Na ten dzień masz już zaplanowaną dostawę.",
+      "DAY_IN_FUTURE": "Ten dzień jeszcze nie nadszedł.",
+      "DAY_CANCELLED": "Ten dzień został anulowany.",
+      "CONSUMPTION_REQUIRED": "Zaznacz, czy posiłek został zjedzony.",
+      "WEIGHT_ENTRY_NOT_FOUND": "Nie znaleźliśmy tego wpisu wagi.",
+      "ALLERGENS_REQUIRED": "Zaznacz alergeny albo opisz je w uwagach — ta dieta tego wymaga.",
+      "DELIVERY_DAY_NOT_FOUND": "Nie znaleźliśmy tego dnia dostawy.",
+      "ORDER_STATUS_TRANSITION": "Tej zmiany statusu nie można teraz wykonać.",
+      "NOTE_BODY_EMPTY": "Napisz treść.",
       "REQUIRED": "To pole jest wymagane.",
       "INVALID_TYPE": "Nieprawidłowa wartość.",
       "TOO_SHORT": "Za krótko — co najmniej {minimum, plural, one {# znak} few {# znaki} many {# znaków} other {# znaku}}.",
@@ -516,6 +540,13 @@
       "preferredAt": "Termin",
       "note": "Wiadomość",
       "context": "Temat konsultacji",
+      "contactPhone": "Telefon kontaktowy",
+      "deliveryNotes": "Uwagi dla kuriera",
+      "reason": "Powód",
+      "phone": "Telefon",
+      "fullName": "Imię i nazwisko",
+      "to": "Nowy termin",
+      "measuredOn": "Data pomiaru",
       "weightKg": "Waga",
       "heightCm": "Wzrost",
       "bodyComposition": "Skład ciała",
@@ -534,6 +565,7 @@
       "overview": "Przegląd",
       "orders": "Zamówienia",
       "consultations": "Konsultacje",
+      "weight": "Waga",
       "notes": "Wiadomości",
       "profile": "Profil"
     },
@@ -570,6 +602,18 @@
       "note": {
         "answered": "Jest odpowiedź",
         "awaiting": "Czeka na odpowiedź"
+      },
+      "orderDay": {
+        "SCHEDULED": "Zaplanowana",
+        "DELIVERED": "Dostarczona",
+        "FAILED": "Nieudana",
+        "SKIPPED": "Pominięta",
+        "CANCELLED": "Anulowana"
+      },
+      "consumption": {
+        "EATEN": "Zjedzone",
+        "SKIPPED": "Pominięte",
+        "UNRECORDED": "Nie odnotowano"
       },
       "intake": {
         "complete": "Kompletny",
@@ -649,7 +693,27 @@
       "paymentTitle": "Płatność",
       "paymentCod": "Płatność przy odbiorze",
       "paymentCodBody": "Zapłacisz kurierowi przy dostawie. Nic nie płacisz z góry.",
-      "raiseNote": "Napisz w sprawie tego zamówienia"
+      "raiseNote": "Napisz w sprawie tego zamówienia",
+      "contactPhone": "Telefon kontaktowy",
+      "deliveryNotes": "Uwagi dla kuriera",
+      "adjustedTotal": "Do zapłaty (po anulowaniu)",
+      "cancelledOn": "Anulowane {date}",
+      "markEaten": "Zjedzone",
+      "markSkipped": "Pominięte",
+      "actionFailed": "Nie udało się zapisać zmiany. Spróbuj ponownie.",
+      "working": "Zapisuję…",
+      "cancelAction": "Wróć",
+      "skipDay": "Pomiń dzień",
+      "skipConfirmBody": "Ten dzień zostanie pominięty i przeniesiony na koniec planu — liczba dni dostawy się nie zmieni.",
+      "skipConfirm": "Tak, pomiń ten dzień",
+      "moveDay": "Przenieś",
+      "moveConfirmBody": "Wybierz nowy dzień dostawy. Zmiana jest możliwa najpóźniej na 2 dni przed dostawą.",
+      "movePick": "Wybierz dzień",
+      "moveConfirm": "Przenieś na wybrany dzień",
+      "cancelTitle": "Anuluj pozostałe dni",
+      "cancelBody": "Anulujesz wszystkie jeszcze niezrealizowane dni tego zamówienia. Dni już dostarczone pozostają płatne. Zmiana jest możliwa najpóźniej na 2 dni przed najbliższą zaplanowaną dostawą.",
+      "cancelReasonPlaceholder": "Powód anulowania (opcjonalnie napisz więcej)",
+      "cancelConfirm": "Tak, anuluj pozostałe dni"
     },
     "consultations": {
       "title": "Konsultacje",
@@ -706,6 +770,13 @@
       "name": "Imię i nazwisko",
       "email": "Adres e-mail",
       "noName": "Nie podano",
+      "phone": "Telefon",
+      "phoneHint": "Polski numer, np. +48 600 000 000.",
+      "language": "Język",
+      "languagePL": "Polski",
+      "languageEN": "Angielski",
+      "detailsSubmit": "Zapisz dane",
+      "detailsSaved": "Dane zapisane.",
       "intakeTitle": "Profil zdrowotny",
       "intakeBody": "Waga, wzrost, aktywność i zdjęcia, których potrzebujemy przed zamówieniem.",
       "intakeLink": "Przejdź do profilu zdrowotnego",
@@ -725,6 +796,28 @@
       "errSame": "Nowe hasło musi się różnić od obecnego.",
       "errWrongCurrent": "Obecne hasło jest nieprawidłowe.",
       "errGeneric": "Nie udało się zmienić hasła. Spróbuj ponownie."
+    },
+    "weight": {
+      "title": "Waga",
+      "subtitle": "Zapisuj wagę i śledź trend. Jeden wpis na dzień — kolejny zapisany tego samego dnia zastępuje poprzedni.",
+      "addTitle": "Dodaj pomiar",
+      "addBody": "Pomiar zapisuje się na dzisiaj (czas polski).",
+      "weightKg": "Waga (kg)",
+      "weightHint": "W kilogramach, np. 78,5",
+      "errWeight": "Podaj wagę w kilogramach.",
+      "note": "Notatka",
+      "optional": "opcjonalnie",
+      "save": "Zapisz pomiar",
+      "saving": "Zapisuję…",
+      "saved": "Pomiar zapisany.",
+      "historyTitle": "Historia",
+      "emptyTitle": "Brak pomiarów",
+      "emptyBody": "Dodaj pierwszy pomiar wagi — historia pojawi się tutaj.",
+      "today": "Dziś",
+      "kg": "{value} kg",
+      "trendTitle": "Trend",
+      "trendNeedMore": "Dodaj co najmniej dwa pomiary, żeby zobaczyć trend.",
+      "trendRange": "Zakres: {min}–{max} kg"
     }
   }
 }

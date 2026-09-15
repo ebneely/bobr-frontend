@@ -6,7 +6,19 @@
  * error shape, and all three are a few lines each.
  */
 
-const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003'}/v1`;
+const API_ORIGIN = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003';
+const BASE_URL = `${API_ORIGIN}/v1`;
+
+/**
+ * Turns a server-relative API path (e.g. `/v1/intake/photos/FRONT`) into an
+ * absolute URL for a plain `<img>` — never `next/image`, since the bytes are
+ * behind the session cookie, not a static asset. `NEXT_PUBLIC_API_URL` is
+ * THIS app's own origin (see next.config.ts's `/v1` rewrite), so the request
+ * stays same-origin and the cookie rides along automatically.
+ */
+export function apiAssetUrl(path: string): string {
+  return `${API_ORIGIN}${path}`;
+}
 
 /** ICU params the backend attaches to a code, e.g. `{ maxMb: 10 }`. */
 export type ApiErrorParams = Record<string, string | number>;

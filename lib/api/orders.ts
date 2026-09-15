@@ -20,12 +20,21 @@ export type OrderStatus =
 
 export type NoteKind = 'NUDGE' | 'COMPLAINT' | 'NOTE';
 
+/** G17 — the delivery day's own lifecycle, independent of the order's. */
+export type DeliveryDayStatus = 'SCHEDULED' | 'DELIVERED' | 'FAILED' | 'SKIPPED' | 'CANCELLED';
+
+/** G31 — what happened to a delivered day. `eaten`/`eatenAt` stay for one release. */
+export type Consumption = 'UNRECORDED' | 'EATEN' | 'SKIPPED';
+
 export interface OrderDay {
   id: string;
   /** ISO date. A delivery DAY in Warsaw, not an instant. */
   deliverOn: string;
   eaten: boolean;
   eatenAt: string | null;
+  status: DeliveryDayStatus;
+  consumption: Consumption;
+  consumptionNote: string | null;
 }
 
 export interface Order {
@@ -40,11 +49,23 @@ export interface Order {
   discountGrosze: number;
   shippingGrosze: number;
   totalGrosze: number;
+  /** G04 — set once the remaining days are cancelled; read as `adjustedTotalGrosze ?? totalGrosze`. */
+  adjustedTotalGrosze: number | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
   createdAt: string;
   days: OrderDay[];
   /** Null on orders placed before addresses were collected. */
   delivery: OrderDelivery | null;
   meal?: { namePl: string; nameEn: string; type: string };
+  /** G14 — who the courier calls and what to know before knocking. */
+  contactPhone: string | null;
+  deliveryNotes: string | null;
+}
+
+/** The total this order is actually billed for — cancellation may have adjusted it. */
+export function effectiveTotalGrosze(order: Pick<Order, 'totalGrosze' | 'adjustedTotalGrosze'>): number {
+  return order.adjustedTotalGrosze ?? order.totalGrosze;
 }
 
 export interface DeliveryAddress {
@@ -82,6 +103,15 @@ export interface PlaceOrderInput {
   /** YYYY-MM-DD, one per delivery day. */
   days: string[];
   delivery: DeliveryAddress;
+  /** G14 — normalised to +48XXXXXXXXX server-side. */
+  contactPhone?: string;
+  deliveryNotes?: string;
+  /**
+   * G38 — generated once per page load with `crypto.randomUUID()`. A repeat
+   * (double click, retry after a timeout) returns the SAME order at 200
+   * instead of creating a second one.
+   */
+  clientRequestId?: string;
 }
 
 /**
@@ -127,11 +157,32 @@ export function apiGetMyOrder(id: string) {
   return apiFetch<Order>(`/orders/${id}`);
 }
 
-/** Meal tracking: mark one delivery day eaten, or undo it. */
-export function apiTrackDay(dayId: string, eaten: boolean) {
+/** G31 — records what happened to a delivered day: eaten, skipped, or cleared back to unrecorded. */
+export function apiTrackDay(dayId: string, consumption: Consumption, note?: string | null) {
   return apiFetch<OrderDay>(`/orders/days/${dayId}`, {
     method: 'PATCH',
-    body: { eaten },
+    body: { consumption, note: note ?? undefined },
+  });
+}
+
+/** G19 — pauses one SCHEDULED day; it moves to the end of the plan. Returns the whole order. */
+export function apiSkipDay(orderId: string, dayId: string) {
+  return apiFetch<Order>(`/orders/${orderId}/days/${dayId}/skip`, { method: 'POST' });
+}
+
+/** G19 — moves one SCHEDULED day to a different date. `to` is `YYYY-MM-DD`. */
+export function apiMoveDay(orderId: string, dayId: string, to: string) {
+  return apiFetch<Order>(`/orders/${orderId}/days/${dayId}/move`, {
+    method: 'PATCH',
+    body: { to },
+  });
+}
+
+/** G19 / G04 — cancels the remaining SCHEDULED days of an order. */
+export function apiCancelOrder(orderId: string, reason: string) {
+  return apiFetch<Order>(`/orders/${orderId}/cancel`, {
+    method: 'POST',
+    body: { reason },
   });
 }
 

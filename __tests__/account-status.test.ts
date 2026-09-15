@@ -35,14 +35,22 @@ function order(partial: Omit<Partial<Order>, 'days'> & { days?: string[] }): Ord
     discountGrosze: 4500,
     shippingGrosze: 0,
     totalGrosze: 40500,
+    adjustedTotalGrosze: null,
+    cancelledAt: null,
+    cancelReason: null,
     createdAt: '2026-09-15T07:00:00.000Z',
     delivery: null,
+    contactPhone: null,
+    deliveryNotes: null,
     ...rest,
     days: days.map((d, i) => ({
       id: `d${i}`,
       deliverOn: `${d}T00:00:00.000Z`,
       eaten: false,
       eatenAt: null,
+      status: 'SCHEDULED' as const,
+      consumption: 'UNRECORDED' as const,
+      consumptionNote: null,
     })),
   };
 }

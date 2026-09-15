@@ -1,4 +1,5 @@
 import { apiFetch } from './client';
+import type { Allergen } from './menu';
 
 /**
  * The pre-purchase intake gate.
@@ -30,10 +31,19 @@ export interface IntakeProfile {
   bodyComposition: string | null;
   activityTypes: ActivityType[];
   activityOther: string | null;
+  /** G15 — the allergens the kitchen must exclude. */
+  allergens: Allergen[];
+  /** G15 — free text for anything the enum does not capture. */
+  dietaryNotes: string | null;
   /** Non-null means checkout is unlocked. This is the gate. */
   completedAt: string | null;
   /** Which of the four are still missing — drives the upload checklist. */
   missingPhotos: PhotoPosition[];
+  /**
+   * Relative, session-authenticated paths (`/v1/intake/photos/FRONT`), never
+   * an absolute URL — see `apiAssetUrl` in `lib/api/client.ts` for turning one
+   * of these into something an `<img>` can load.
+   */
   photos: Partial<Record<PhotoPosition, string | null>>;
 }
 
@@ -43,6 +53,8 @@ export interface IntakeProfileInput {
   bodyComposition?: string | null;
   activityTypes: ActivityType[];
   activityOther?: string | null;
+  allergens: Allergen[];
+  dietaryNotes?: string | null;
 }
 
 /** Throws ApiError with status 404 when the customer has no profile yet. */
