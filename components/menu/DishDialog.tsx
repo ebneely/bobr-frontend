@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 
 import type { MenuItem } from '@/lib/api/menu';
+import { Button } from '@/components/ui/Button';
+import { useMeals } from '@/lib/hooks/use-order';
 import { getLenis } from '@/components/motion/SmoothScroll';
 import { DietBadge, DishMedia } from './DishParts';
 import { CloseIcon } from './MenuIcons';
@@ -20,6 +22,13 @@ import { CloseIcon } from './MenuIcons';
 export function DishDialog({ item, onClose }: { item: MenuItem | null; onClose: () => void }) {
   const t = useTranslations('menu');
   const ref = useRef<HTMLDialogElement | null>(null);
+  const meals = useMeals();
+
+  // "Order this diet" only for a dish linked to a meal that is on sale now (G44).
+  // The public meal list holds active meals only, so a dish of a withdrawn diet
+  // simply has no button rather than one that ends in "meal unavailable".
+  const orderMealId =
+    item?.mealId && meals.data?.some((m) => m.id === item.mealId) ? item.mealId : null;
 
   useEffect(() => {
     const dialog = ref.current;
@@ -119,6 +128,14 @@ export function DishDialog({ item, onClose }: { item: MenuItem | null; onClose: 
                 <p className="bobr-dish-dialog__muted">{t('allergensNone')}</p>
               )}
             </div>
+
+            {orderMealId && (
+              <div data-testid="dish-order">
+                <Button href={{ pathname: '/order', query: { meal: orderMealId } }}>
+                  {t('orderDiet')}
+                </Button>
+              </div>
+            )}
 
             {item.tags.length > 0 && (
               <div>

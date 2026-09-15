@@ -156,7 +156,7 @@ try {
   // A complete address, so the refusal comes from the intake gate on the
   // server and not from the storefront's own address validation.
   await fillAddress(page);
-  await page.getByRole('button', { name: /Złóż zamówienie/i }).click();
+  await page.getByRole('button', { name: /Zamawiam z obowiązkiem zapłaty/i }).click();
   await page.waitForTimeout(3500);
   const refusal = (await page.locator('[role="status"]').first().textContent())?.trim() ?? '';
   await shot(page, '05-gate-refusal');
@@ -287,7 +287,7 @@ try {
   await page.waitForTimeout(600);
   await fillAddress(page);
   await shot(page, '15-ten-days-picked');
-  await page.getByRole('button', { name: /Złóż zamówienie/i }).click();
+  await page.getByRole('button', { name: /Zamawiam z obowiązkiem zapłaty/i }).click();
   await page.waitForTimeout(5000);
   const totalText = (await page.textContent('body')) ?? '';
   const expected = (EXPECTED_TOTAL_GROSZE / 100).toFixed(2).replace('.', ',');

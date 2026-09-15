@@ -43,7 +43,7 @@ export async function CtaBand() {
               {t('body')}
             </p>
 
-            <Button href="/login" variant="light">
+            <Button href="/order" variant="light">
               {t('cta')}
             </Button>
           </div>

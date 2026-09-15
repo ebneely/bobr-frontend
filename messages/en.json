@@ -28,7 +28,8 @@
     "menuOpen": "Open navigation",
     "menuClose": "Close navigation",
     "primary": "Main navigation",
-    "consultation": "Consultation"
+    "consultation": "Consultation",
+    "order": "Order"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -67,9 +68,8 @@
     "selected": "Days selected: {count}",
     "minDays": "A calendar order needs at least 5 days.",
     "ladder": "Discounts: 10 days — 10% · 20 days — 15% · a whole month — 20%",
-    "place": "Place order",
-    "placing": "Placing…",
-    "totalNote": "The total is calculated by the server when you place the order.",
+    "place": "Order with obligation to pay",
+    "placing": "Placing your order…",
     "successTitle": "Order placed",
     "successBody": "Cash on delivery. You will find the details under My account.",
     "needProfile": "Complete your profile first.",
@@ -78,7 +78,6 @@
     "shippingOneTime": "Delivery: {amount}",
     "selectMonth": "Select all ({count})",
     "clearMonth": "Clear month",
-    "successBreakdown": "Days: {days} · {percent}% off (−{discount}) · delivery {shipping}",
     "shippingByZone": "Delivery cost depends on the zone — enter your postal code below.",
     "shippingFreeShort": "free delivery",
     "addressTitle": "Delivery address",
@@ -97,7 +96,33 @@
     "zoneName": "Delivery zone: {zone}",
     "zoneNotDelivered": "We do not deliver to this postal code.",
     "zoneFailed": "The delivery zone could not be checked. Delivery is calculated when the order is placed.",
-    "successAddress": "Delivery: {address} ({zone} zone)"
+    "placeNote": "Pressing the button places an order with an obligation to pay the \"Total to pay\" shown above.",
+    "perDay": "{price} / day",
+    "mealsFailed": "The diets could not be loaded. Refresh the page in a moment.",
+    "signInTitle": "Sign in to order",
+    "signInBody": "Orders are placed from your account — that way the dietitian knows your profile, and you can follow deliveries and payments under My account. No account yet? It takes a minute to create one.",
+    "signIn": "Sign in or create an account",
+    "goIntake": "Complete your profile",
+    "summaryTitle": "Order summary",
+    "summaryMissing": {
+      "meal": "Pick a diet and we will show the total.",
+      "days": "Pick your delivery days and we will show the total.",
+      "minDays": "A calendar order needs at least 5 days — pick more days to see the total.",
+      "address": "Enter the delivery address — the total including delivery appears here."
+    },
+    "summaryLoading": "Working out the total…",
+    "summaryUpdating": "Updating…",
+    "summaryFailed": "The total could not be worked out. Try again in a moment.",
+    "summaryMeal": "Diet",
+    "summaryDays": "{count, plural, one {# delivery day} other {# delivery days}}",
+    "summaryGoods": "{price} × {count, plural, one {# day} other {# days}}",
+    "summaryDiscount": "Discount {percent}%",
+    "summaryShipping": "Delivery",
+    "summaryShippingFree": "free",
+    "summaryTotal": "Total to pay",
+    "summaryPayment": "Payment on delivery. The amount includes delivery.",
+    "successCta": "View order",
+    "summaryAddress": "Address: {address} · {zone} zone"
   },
   "consultation": {
     "eyebrow": "Consultation",
@@ -186,7 +211,11 @@
     "CONSULTATION": {
       "name": "Consultation",
       "body": "A session with Dr Abdelrahman."
-    }
+    },
+    "perDay": "per day",
+    "orderCta": "Order",
+    "consultationCta": "Book a consultation",
+    "perConsultation": "per consultation"
   },
   "steps": {
     "eyebrow": "How it works",
@@ -348,7 +377,8 @@
       "body": "A few dishes from the current menu, from breakfast to dinner.",
       "cta": "See the full menu",
       "dishLink": "{name} — find it on the menu"
-    }
+    },
+    "orderDiet": "Order this diet"
   },
   "mealTypes": {
     "KETOGENIC": "Ketogenic diet",
@@ -404,7 +434,13 @@
     "allPhotos": "All four photos uploaded.",
     "completeYes": "Profile complete — you can place an order.",
     "completeNo": "Profile not complete yet — an order would be refused.",
-    "goOrder": "Go to ordering"
+    "goOrder": "Go to ordering",
+    "signInTitle": "Sign in to complete your profile",
+    "signInBody": "Your profile — measurements, activity and photos — is kept on your account so the dietitian can plan a diet for you alone.",
+    "signIn": "Sign in or create an account",
+    "completeYesNext": "Profile complete — you can go back to your order.",
+    "completeNoNext": "Before you order, complete your profile: measurements, activity and four photos. Then you will go back to your order.",
+    "continueOrder": "Back to your order"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

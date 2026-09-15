@@ -1,4 +1,4 @@
-import { safeNextPath } from '@/lib/auth/next-path';
+import { afterRegisterPath, safeNextPath } from '@/lib/auth/next-path';
 
 describe('safeNextPath', () => {
   it('accepts a local page in either locale', () => {
@@ -22,5 +22,39 @@ describe('safeNextPath', () => {
     ['a dot segment', '/pl/../../evil'],
   ])('refuses %s', (_label, value) => {
     expect(safeNextPath(value)).toBeNull();
+  });
+});
+
+describe('safeNextPath with a query', () => {
+  it('keeps a plain query so ?meal= survives login', () => {
+    expect(safeNextPath('/pl/order?meal=9133f6cc-54f5-4e68-a528-519007963cc3')).toBe(
+      '/pl/order?meal=9133f6cc-54f5-4e68-a528-519007963cc3',
+    );
+    expect(safeNextPath('/pl/intake?next=%2Fpl%2Forder')).toBe('/pl/intake?next=%2Fpl%2Forder');
+  });
+
+  it.each([
+    ['a slash in the query', '/pl/order?next=//evil.com'],
+    ['a fragment', '/pl/order#x'],
+    ['a second question mark', '/pl/order??x'],
+    ['a query without a locale', '/order?meal=1'],
+  ])('refuses %s', (_label, value) => {
+    expect(safeNextPath(value)).toBeNull();
+  });
+});
+
+describe('afterRegisterPath', () => {
+  it('sends a new account to the intake when there is nowhere else to go', () => {
+    expect(afterRegisterPath('pl', null)).toBe('/pl/intake');
+  });
+
+  it('routes the way to ordering through the intake, carrying the order page', () => {
+    expect(afterRegisterPath('pl', '/pl/order')).toBe('/pl/intake?next=%2Fpl%2Forder');
+    expect(afterRegisterPath('en', '/en/order?meal=abc')).toBe('/en/intake?next=%2Fen%2Forder%3Fmeal%3Dabc');
+  });
+
+  it('returns straight to anything else', () => {
+    expect(afterRegisterPath('pl', '/pl/consultation')).toBe('/pl/consultation');
+    expect(afterRegisterPath('pl', '/pl/orderly')).toBe('/pl/orderly');
   });
 });

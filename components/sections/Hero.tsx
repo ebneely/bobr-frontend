@@ -60,7 +60,7 @@ export async function Hero() {
           {/* The shared Button's face and offset, at the reference's larger
               hero size. Same classes, so the press interaction is identical;
               the size lives in `.bobr-hero__cta`. */}
-          <Link href="/login" className="bobr-btn bobr-hero__cta">
+          <Link href="/order" className="bobr-btn bobr-hero__cta">
             <span aria-hidden className="bobr-btn-offset" />
             <span className="bobr-btn-face">{t('cta')}</span>
           </Link>

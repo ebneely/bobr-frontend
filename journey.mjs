@@ -69,7 +69,7 @@ try {
   await page.screenshot({ path: `${OUT}/06-days-picked.png` });
   log('04 order screen', { dayCellsFound: available });
 
-  await page.getByRole('button', { name: /Złóż zamówienie/i }).click();
+  await page.getByRole('button', { name: /Zamawiam z obowiązkiem zapłaty/i }).click();
   await page.waitForTimeout(3000);
   const statusText = (await page.locator('[role="status"]').first().textContent())?.trim();
   await page.screenshot({ path: `${OUT}/07-gate-refusal.png` });

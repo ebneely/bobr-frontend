@@ -28,7 +28,8 @@
     "menuOpen": "Otwórz nawigację",
     "menuClose": "Zamknij nawigację",
     "primary": "Nawigacja główna",
-    "consultation": "Konsultacja"
+    "consultation": "Konsultacja",
+    "order": "Zamów"
   },
   "auth": {
     "loginTitle": "Zaloguj się",
@@ -67,9 +68,8 @@
     "selected": "Wybrane dni: {count}",
     "minDays": "Kalendarz wymaga minimum 5 dni.",
     "ladder": "Rabaty: 10 dni — 10% · 20 dni — 15% · cały miesiąc — 20%",
-    "place": "Złóż zamówienie",
-    "placing": "Składam…",
-    "totalNote": "Kwotę wylicza serwer przy składaniu zamówienia.",
+    "place": "Zamawiam z obowiązkiem zapłaty",
+    "placing": "Składam zamówienie…",
     "successTitle": "Zamówienie złożone",
     "successBody": "Płatność przy odbiorze. Szczegóły znajdziesz w zakładce Moje konto.",
     "needProfile": "Najpierw uzupełnij profil.",
@@ -78,7 +78,6 @@
     "shippingOneTime": "Koszt dostawy: {amount}",
     "selectMonth": "Zaznacz wszystkie ({count})",
     "clearMonth": "Odznacz miesiąc",
-    "successBreakdown": "Dni: {days} · rabat {percent}% (−{discount}) · dostawa {shipping}",
     "shippingByZone": "Koszt dostawy zależy od strefy — podaj kod pocztowy poniżej.",
     "shippingFreeShort": "dostawa gratis",
     "addressTitle": "Adres dostawy",
@@ -97,7 +96,33 @@
     "zoneName": "Strefa dostawy: {zone}",
     "zoneNotDelivered": "Nie dowozimy pod ten kod pocztowy.",
     "zoneFailed": "Nie udało się sprawdzić strefy dostawy. Koszt dostawy wyliczymy przy składaniu zamówienia.",
-    "successAddress": "Dostawa: {address} (strefa {zone})"
+    "placeNote": "Naciśnięcie przycisku oznacza złożenie zamówienia z obowiązkiem zapłaty kwoty „Razem do zapłaty” podanej powyżej.",
+    "perDay": "{price} / dzień",
+    "mealsFailed": "Nie udało się wczytać diet. Odśwież stronę za chwilę.",
+    "signInTitle": "Zaloguj się, aby zamówić",
+    "signInBody": "Zamówienie składasz na swoim koncie — dzięki temu dietetyk zna Twój profil, a dostawy i płatności widzisz w zakładce Moje konto. Nie masz konta? Założysz je w minutę.",
+    "signIn": "Zaloguj się lub załóż konto",
+    "goIntake": "Uzupełnij profil",
+    "summaryTitle": "Podsumowanie zamówienia",
+    "summaryMissing": {
+      "meal": "Wybierz dietę, a pokażemy sumę.",
+      "days": "Wybierz dni dostawy, a pokażemy sumę.",
+      "minDays": "Kalendarz wymaga minimum 5 dni — zaznacz więcej dni, a pokażemy sumę.",
+      "address": "Podaj adres dostawy — suma z kosztem dostawy pojawi się tutaj."
+    },
+    "summaryLoading": "Liczę sumę…",
+    "summaryUpdating": "Przeliczam…",
+    "summaryFailed": "Nie udało się policzyć sumy. Spróbuj ponownie za chwilę.",
+    "summaryMeal": "Dieta",
+    "summaryDays": "{count, plural, one {# dzień dostawy} few {# dni dostawy} many {# dni dostawy} other {# dnia dostawy}}",
+    "summaryGoods": "{price} × {count, plural, one {# dzień} other {# dni}}",
+    "summaryDiscount": "Rabat {percent}%",
+    "summaryShipping": "Dostawa",
+    "summaryShippingFree": "gratis",
+    "summaryTotal": "Razem do zapłaty",
+    "summaryPayment": "Płatność przy odbiorze. Kwota zawiera koszt dostawy.",
+    "successCta": "Zobacz zamówienie",
+    "summaryAddress": "Adres: {address} · strefa {zone}"
   },
   "consultation": {
     "eyebrow": "Konsultacja",
@@ -186,7 +211,11 @@
     "CONSULTATION": {
       "name": "Konsultacja",
       "body": "Rozmowa z dr Abdelrahmanem."
-    }
+    },
+    "perDay": "za dzień",
+    "orderCta": "Zamów",
+    "consultationCta": "Umów konsultację",
+    "perConsultation": "za konsultację"
   },
   "steps": {
     "eyebrow": "Jak to działa",
@@ -348,7 +377,8 @@
       "body": "Kilka dań z bieżącego menu, od śniadania do kolacji.",
       "cta": "Zobacz całe menu",
       "dishLink": "{name} — szukaj w menu"
-    }
+    },
+    "orderDiet": "Zamów tę dietę"
   },
   "mealTypes": {
     "KETOGENIC": "Dieta ketogeniczna",
@@ -404,7 +434,13 @@
     "allPhotos": "Wszystkie cztery zdjęcia wgrane.",
     "completeYes": "Profil kompletny — możesz złożyć zamówienie.",
     "completeNo": "Profil jeszcze niekompletny — zamówienie zostanie odrzucone.",
-    "goOrder": "Przejdź do zamówienia"
+    "goOrder": "Przejdź do zamówienia",
+    "signInTitle": "Zaloguj się, aby uzupełnić profil",
+    "signInBody": "Profil — pomiary, aktywność i zdjęcia — zapisujemy na Twoim koncie, żeby dietetyk mógł ułożyć dietę tylko dla Ciebie.",
+    "signIn": "Zaloguj się lub załóż konto",
+    "completeYesNext": "Profil kompletny — możesz wrócić do zamówienia.",
+    "completeNoNext": "Zanim złożysz zamówienie, uzupełnij profil: pomiary, aktywność i cztery zdjęcia. Potem wrócisz do zamówienia.",
+    "continueOrder": "Wróć do zamówienia"
   },
   "errors": {
     "generic": "Coś poszło nie tak. Spróbuj ponownie.",

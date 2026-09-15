@@ -29,7 +29,7 @@ export type ServerSession =
   /** The API could not be asked. Not treated as signed out — see requireAccount. */
   | { state: 'unknown' };
 
-function apiOrigin(): string {
+export function apiOrigin(): string {
   return (
     process.env.API_UPSTREAM_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8003'
   ).replace(/\/+$/, '');
@@ -78,4 +78,30 @@ export async function requireAccount(locale: string, path: string): Promise<Serv
     redirect({ href: { pathname: '/login', query: { next: `/${locale}${path}` } }, locale });
   }
   return session;
+}
+
+export type ServerIntakeState = 'missing' | 'incomplete' | 'complete' | 'unknown';
+
+/**
+ * Whether the signed-in customer's intake profile is complete — the gate the
+ * API applies to ordering. `unknown` when the API could not say (not signed
+ * in, down, any other answer): callers must not redirect on it, the API still
+ * refuses at the write.
+ */
+export async function getServerIntakeState(): Promise<ServerIntakeState> {
+  const cookieHeader = (await cookies()).toString();
+  if (!cookieHeader) return 'unknown';
+  try {
+    const res = await fetch(`${apiOrigin()}/v1/intake/me`, {
+      headers: { cookie: cookieHeader },
+      cache: 'no-store',
+    });
+    if (res.status === 404) return 'missing';
+    if (!res.ok) return 'unknown';
+    const body = (await res.json().catch(() => null)) as { completedAt?: string | null } | null;
+    if (!body) return 'unknown';
+    return body.completedAt ? 'complete' : 'incomplete';
+  } catch {
+    return 'unknown';
+  }
 }

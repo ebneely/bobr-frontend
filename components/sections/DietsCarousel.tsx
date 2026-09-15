@@ -1,25 +1,32 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Slider } from '@/components/ui/Slider';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
+import { Button } from '@/components/ui/Button';
+import { mealDescription, mealName, type Meal } from '@/lib/api/meals';
+import { formatGrosze } from '@/lib/api/orders';
+import { CONSULTATION_PRICE_GROSZE } from '@/lib/api/consultations';
+import { getMealsForServer } from '@/lib/api/server-meals';
 
 /**
- * The four diet types as a carousel.
+ * The diets on offer as a carousel, with their real prices (G11).
  *
- * A carousel rather than the ticker that used to be here: these are the things
- * a visitor is choosing between, so they have to be able to stop on one and
- * read it. A track that never stops is fine for atmosphere and wrong for a
- * decision — the ticker moved to TickerBand, where it carries no choice.
+ * A carousel rather than a ticker: these are the things a visitor is choosing
+ * between, so they have to be able to stop on one and read it.
+ *
+ * The cards come from `GET /v1/meals` on the server (cached for five minutes),
+ * so the price a visitor reads here is the catalogue price the order page
+ * charges per day — the law on price display asks for exactly that, and a
+ * price in the message catalogue would drift from it. With no meals (API down
+ * or catalogue empty) the section falls back to the descriptive copy, without
+ * prices or order buttons, rather than disappearing.
  */
 export async function DietsCarousel() {
   const t = await getTranslations('diets');
+  const locale = await getLocale();
+  const meals = await getMealsForServer();
 
-  const diets = [
-    { key: 'KETOGENIC', tone: 'green' },
-    { key: 'GLUTEN_FREE', tone: 'cream' },
-    { key: 'ALLERGIES', tone: 'orange' },
-    { key: 'CONSULTATION', tone: 'green' },
-  ] as const;
+  const tones = ['green', 'cream', 'orange'] as const;
 
   return (
     <section
@@ -36,39 +43,175 @@ export async function DietsCarousel() {
       </div>
 
       {/* Full-bleed: the Slider supplies its own gutter as scroll padding, so
-          the track can run to the viewport edge and the next card peeks in,
-          which is what tells a visitor there is more to scroll. */}
+          the track can run to the viewport edge and the next card peeks in. */}
       <Slider label={t('eyebrow')}>
-        {diets.map((diet) => (
-          <article
-            key={diet.key}
-            className="bobr-card"
-            style={{
-              height: '100%',
-              background: 'var(--bobr-surface)',
-              border: '1px solid var(--bobr-border)',
-              borderRadius: 'var(--bobr-radius)',
-              padding: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem',
-            }}
-          >
-            <div className="bobr-card__media">
-              <PlaceholderMedia tone={diet.tone} ratio="4 / 3" />
-            </div>
-            <div style={{ padding: '0 0.5rem 0.75rem' }}>
-              <h3 className="bobr-h4">{t(`${diet.key}.name`)}</h3>
-              <p
-                className="bobr-body"
-                style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.5rem' }}
-              >
-                {t(`${diet.key}.body`)}
-              </p>
-            </div>
-          </article>
-        ))}
+        {meals.length > 0
+          ? [
+              ...meals.map((meal, i) => (
+                <MealCard key={meal.id} meal={meal} locale={locale} tone={tones[i % tones.length]} />
+              )),
+              <StaticCard
+                key="CONSULTATION"
+                tone="green"
+                name={t('CONSULTATION.name')}
+                body={t('CONSULTATION.body')}
+                cta={t('consultationCta')}
+                href="/consultation"
+                price={formatGrosze(CONSULTATION_PRICE_GROSZE, locale)}
+                priceNote={t('perConsultation')}
+              />,
+            ]
+          : (['KETOGENIC', 'GLUTEN_FREE', 'ALLERGIES', 'CONSULTATION'] as const).map((key, i) => (
+              <StaticCard
+                key={key}
+                tone={i === 3 ? 'green' : tones[i]}
+                name={t(`${key}.name`)}
+                body={t(`${key}.body`)}
+              />
+            ))}
       </Slider>
     </section>
+  );
+}
+
+const cardStyle = {
+  height: '100%',
+  background: 'var(--bobr-surface)',
+  border: '1px solid var(--bobr-border)',
+  borderRadius: 'var(--bobr-radius)',
+  padding: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+} as const;
+
+async function MealCard({
+  meal,
+  locale,
+  tone,
+}: {
+  meal: Meal;
+  locale: string;
+  tone: 'green' | 'cream' | 'orange';
+}) {
+  const t = await getTranslations('diets');
+  // The catalogue's own description when it has one; otherwise the site copy
+  // for that diet type, which every known type has.
+  const known = ['KETOGENIC', 'GLUTEN_FREE', 'ALLERGIES'].includes(meal.type);
+  const body = mealDescription(meal, locale) ?? (known ? t(`${meal.type}.body`) : null);
+
+  return (
+    <article className="bobr-card" data-testid="diet-card" data-meal={meal.id} style={cardStyle}>
+      <div className="bobr-card__media">
+        {meal.imageUrl ? (
+          // A plain <img>: the photo is on the API's image host and already sized.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={meal.imageUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={{
+              width: '100%',
+              aspectRatio: '4 / 3',
+              objectFit: 'cover',
+              display: 'block',
+              borderRadius: 'calc(var(--bobr-radius) - 0.5rem)',
+            }}
+          />
+        ) : (
+          <PlaceholderMedia tone={tone} ratio="4 / 3" />
+        )}
+      </div>
+      <div
+        style={{
+          padding: '0 0.5rem 0.75rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          flex: '1 1 auto',
+        }}
+      >
+        <h3 className="bobr-h4">{mealName(meal, locale)}</h3>
+        {body && (
+          <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
+            {body}
+          </p>
+        )}
+        <Price amount={formatGrosze(meal.priceGrosze, locale)} note={t('perDay')} />
+        <div style={{ paddingTop: '0.25rem' }}>
+          <Button href={{ pathname: '/order', query: { meal: meal.id } }}>{t('orderCta')}</Button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function StaticCard({
+  tone,
+  name,
+  body,
+  cta,
+  href,
+  price,
+  priceNote,
+}: {
+  tone: 'green' | 'cream' | 'orange';
+  name: string;
+  body: string;
+  cta?: string;
+  href?: string;
+  price?: string;
+  priceNote?: string;
+}) {
+  return (
+    <article className="bobr-card" style={cardStyle}>
+      <div className="bobr-card__media">
+        <PlaceholderMedia tone={tone} ratio="4 / 3" />
+      </div>
+      <div
+        style={{
+          padding: '0 0.5rem 0.75rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          flex: '1 1 auto',
+        }}
+      >
+        <h3 className="bobr-h4">{name}</h3>
+        <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
+          {body}
+        </p>
+        {price && <Price amount={price} note={priceNote ?? ''} />}
+        {cta && href && (
+          <div style={{ paddingTop: '0.25rem' }}>
+            <Button href={href} variant="outline">
+              {cta}
+            </Button>
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** The price line, pushed to the bottom of the card so prices align across cards. */
+function Price({ amount, note }: { amount: string; note: string }) {
+  return (
+    <p
+      data-testid="diet-price"
+      style={{
+        marginTop: 'auto',
+        paddingTop: '0.5rem',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: '0.375rem',
+        color: 'var(--bobr-fg)',
+      }}
+    >
+      <span style={{ fontSize: 'var(--bobr-text-h4)', fontWeight: 'var(--bobr-weight-bold)' }}>{amount}</span>
+      <span style={{ fontSize: 'var(--bobr-text-sm)', color: 'var(--bobr-fg-muted)' }}>{note}</span>
+    </p>
   );
 }

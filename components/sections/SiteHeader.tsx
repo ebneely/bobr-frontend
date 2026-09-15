@@ -47,6 +47,7 @@ export function SiteHeader() {
     { href: '/#diets', label: t('diets') },
     { href: '/#pricing', label: t('pricing') },
     { href: '/consultation', label: t('consultation') },
+    { href: '/order', label: t('order') },
   ];
 
   useEffect(() => {

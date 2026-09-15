@@ -13,7 +13,8 @@ import { SiteFooter } from '@/components/sections/SiteFooter';
 
 /**
  * The explanatory home page — per the spec, the one page readable without an
- * account. Every CTA on it leads to login.
+ * account. Its calls to action lead to ordering, which asks for a login and
+ * the intake profile on the way if they are missing (G05).
  *
  * The bands alternate cream / alternate-cream so the eye gets a rhythm on the
  * way down, and each section owns its own vertical padding rather than the page

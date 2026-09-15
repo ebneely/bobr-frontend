@@ -75,14 +75,48 @@ export interface CustomerNote {
 /** Longest note body the server accepts (`RaiseNoteSchema`). */
 export const NOTE_BODY_MAX = 2000;
 
-export function apiPlaceOrder(input: {
+/** The body of both `POST /orders` and `POST /orders/quote`. */
+export interface PlaceOrderInput {
   mealId: string;
   mode: OrderMode;
   /** YYYY-MM-DD, one per delivery day. */
   days: string[];
   delivery: DeliveryAddress;
-}) {
-  return apiFetch<Order>('/orders', { method: 'POST', body: input });
+}
+
+/**
+ * What `POST /orders` would charge for a body, from `POST /orders/quote`
+ * (gap G03). The same server code path prices both, so these are the figures
+ * the placed order freezes. Integer grosze throughout.
+ */
+export interface OrderQuote {
+  mealId: string;
+  mode: OrderMode;
+  unitPriceGrosze: number;
+  goodsGrosze: number;
+  discountPercent: number;
+  discountGrosze: number;
+  shippingGrosze: number;
+  totalGrosze: number;
+  dayCount: number;
+  /** Sorted `YYYY-MM-DD` Warsaw days. */
+  deliveryDays: string[];
+  firstDeliveryDay: string;
+  lastDeliveryDay: string;
+  delivery: OrderDelivery;
+}
+
+/** The placed order, plus the day summary `POST /orders` adds to its response. */
+export type PlacedOrder = Order &
+  Pick<OrderQuote, 'dayCount' | 'deliveryDays' | 'firstDeliveryDay' | 'lastDeliveryDay'>;
+
+export function apiPlaceOrder(input: PlaceOrderInput) {
+  return apiFetch<PlacedOrder>('/orders', { method: 'POST', body: input });
+}
+
+/** Prices the body without writing anything. Refuses exactly like placing. */
+export function apiQuoteOrder(input: PlaceOrderInput, signal?: AbortSignal) {
+  return apiFetch<OrderQuote>('/orders/quote', { method: 'POST', body: input, signal });
 }
 
 export function apiListMyOrders() {

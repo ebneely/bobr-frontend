@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
-import { Link } from '@/lib/i18n/navigation';
+import { GateCard } from '@/components/ui/GateCard';
 import { ApiError, formatApiError } from '@/lib/api/client';
 import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import {
@@ -42,9 +42,20 @@ const PHOTO_LABEL_KEY: Record<PhotoPosition, string> = {
   RIGHT: 'photoRight',
 };
 
-type Load = 'loading' | 'ready' | 'failed';
+type Load = 'loading' | 'ready' | 'signedOut' | 'failed';
 
-export function IntakeClient() {
+export function IntakeClient({
+  signedIn,
+  next,
+  returnPath,
+}: {
+  /** From the server's session check. A 401 while loading flips it. */
+  signedIn: boolean;
+  /** A validated local path to continue to once the profile is complete. */
+  next: string | null;
+  /** This page with its query, for the login link's `next`. */
+  returnPath: string;
+}) {
   const t = useTranslations('intake');
   const translateError = useApiErrorTranslate();
 
@@ -76,6 +87,9 @@ export function IntakeClient() {
    * produces the extra render this screen has no use for.
    */
   useEffect(() => {
+    // Signed out: nothing to load, the card below explains. No request, so no
+    // 401 that would otherwise read as "load failed" (G06).
+    if (!signedIn) return;
     let alive = true;
 
     apiGetMyIntake()
@@ -88,13 +102,14 @@ export function IntakeClient() {
         if (!alive) return;
         // 404 is the normal first visit: there is simply no profile yet.
         if (e instanceof ApiError && e.status === 404) setLoad('ready');
+        else if (e instanceof ApiError && e.status === 401) setLoad('signedOut');
         else setLoad('failed');
       });
 
     return () => {
       alive = false;
     };
-  }, []);
+  }, [signedIn]);
 
   function applyProfile(p: IntakeProfile) {
     setProfile(p);
@@ -190,6 +205,18 @@ export function IntakeClient() {
     }
   }
 
+  if (!signedIn || load === 'signedOut') {
+    return (
+      <GateCard
+        testId="intake-signed-out"
+        title={t('signInTitle')}
+        body={t('signInBody')}
+        cta={t('signIn')}
+        href={{ pathname: '/login', query: { next: returnPath } }}
+      />
+    );
+  }
+
   if (load === 'loading') {
     return (
       <p className="bobr-body" role="status" aria-live="polite">
@@ -223,8 +250,17 @@ export function IntakeClient() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <GateBanner
         complete={complete}
-        text={complete ? t('completeYes') : t('completeNo')}
-        cta={complete ? t('goOrder') : null}
+        text={
+          complete
+            ? next
+              ? t('completeYesNext')
+              : t('completeYes')
+            : next
+              ? t('completeNoNext')
+              : t('completeNo')
+        }
+        cta={complete ? (next ? t('continueOrder') : t('goOrder')) : null}
+        href={continueHref(next)}
       />
 
       <form
@@ -590,14 +626,27 @@ function PhotoPicker({
   );
 }
 
+/**
+ * Where "continue" goes. `next` is a validated local path with its locale
+ * (/pl/order?meal=…); the Link adds the locale itself, so it is stripped here.
+ * Without one, the order page is the natural next step.
+ */
+function continueHref(next: string | null): string {
+  if (!next) return '/order';
+  return next.replace(/^\/(pl|en)(?=\/|\?|$)/, '') || '/';
+}
+
 function GateBanner({
   complete,
   text,
   cta,
+  href,
 }: {
   complete: boolean;
   text: string;
   cta: string | null;
+  /** Without the locale prefix — the locale-aware Link adds it. */
+  href: string;
 }) {
   return (
     <div
@@ -614,20 +663,10 @@ function GateBanner({
         background: complete ? 'var(--bobr-surface)' : 'var(--bobr-bg-alt)',
       }}
     >
-      <span
-        style={{ fontSize: 'var(--bobr-text-sm)', color: 'var(--bobr-fg)' }}
-      >
+      <span style={{ fontSize: 'var(--bobr-text-sm)', color: 'var(--bobr-fg)', flex: '1 1 16rem' }}>
         {text}
       </span>
-      {cta && (
-        <Link
-          href="/order"
-          className="bobr-navlink"
-          style={{ marginLeft: 'auto' }}
-        >
-          {cta}
-        </Link>
-      )}
+      {cta && <Button href={href}>{cta}</Button>}
     </div>
   );
 }

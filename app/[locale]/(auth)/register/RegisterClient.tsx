@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { signUp } from '@/lib/auth/client';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 import { Link } from '@/lib/i18n/navigation';
+import { afterRegisterPath } from '@/lib/auth/next-path';
 
 const MIN_PASSWORD = 8;
 
 export function RegisterClient({ next }: { next: string | null }) {
   const t = useTranslations('auth');
+  const locale = useLocale();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -63,9 +65,10 @@ export function RegisterClient({ next }: { next: string | null }) {
     // autoSignIn is on, so the session cookie is already set. Full navigation,
     // so server components re-render signed in. Never the dashboard — it is
     // hidden from the storefront (owner, 2026-09-14).
-    // Back to the page that sent them here when there is one; `next` is
-    // validated as a local path on the server before it arrives.
-    window.location.assign(next ?? '/');
+    // A new account has no intake profile yet, so on the way to ordering (or
+    // with nowhere else to go) the intake is the next step, carrying the order
+    // page as its own `next` (G05). `next` is validated on the server first.
+    window.location.assign(afterRegisterPath(locale, next));
   }
 
   return (
