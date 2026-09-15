@@ -180,6 +180,9 @@ export function OrderClient() {
 
   function toggleDay(iso: string) {
     setDays((previous) => {
+      // A one-time order is exactly one delivery (backend ONE_TIME_SINGLE_DAY),
+      // so picking a day replaces the selection instead of adding to it.
+      if (mode === 'ONE_TIME') return previous.has(iso) ? new Set() : new Set([iso]);
       const next = new Set(previous);
       if (next.has(iso)) next.delete(iso);
       else next.add(iso);
@@ -348,7 +351,14 @@ export function OrderClient() {
           <Choice
             name="mode"
             checked={mode === 'ONE_TIME'}
-            onSelect={() => setMode('ONE_TIME')}
+            onSelect={() => {
+              setMode('ONE_TIME');
+              // Keep only the earliest chosen day: one-time means one delivery.
+              setDays((previous) => {
+                const earliest = [...previous].sort()[0];
+                return earliest ? new Set([earliest]) : new Set();
+              });
+            }}
             title={t('oneTime')}
             note={t('oneTimeNote')}
           />
@@ -419,23 +429,26 @@ export function OrderClient() {
                     {group.label}
                   </h3>
                   {/* A button, not a checkbox: the day cells are the only
-                      checkboxes in this grid, and scripts count on that. */}
-                  <button
-                    type="button"
-                    className="bobr-navlink"
-                    data-select-month={group.month}
-                    onClick={() => toggleMonth(isos)}
-                    style={{
-                      background: 'none',
-                      border: 0,
-                      padding: 0,
-                      font: 'inherit',
-                      fontSize: 'var(--bobr-text-sm)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {allOn ? t('clearMonth') : t('selectMonth', { count: isos.length })}
-                  </button>
+                      checkboxes in this grid, and scripts count on that.
+                      Hidden for one-time orders, which have a single day. */}
+                  {mode === 'CALENDAR' && (
+                    <button
+                      type="button"
+                      className="bobr-navlink"
+                      data-select-month={group.month}
+                      onClick={() => toggleMonth(isos)}
+                      style={{
+                        background: 'none',
+                        border: 0,
+                        padding: 0,
+                        font: 'inherit',
+                        fontSize: 'var(--bobr-text-sm)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {allOn ? t('clearMonth') : t('selectMonth', { count: isos.length })}
+                    </button>
+                  )}
                 </div>
                 <div
                   style={{

@@ -440,6 +440,8 @@
       "INTAKE_INCOMPLETE": "Your profile is not complete yet — finish it before placing an order.",
       "ORDER_NOT_FOUND": "We could not find that order.",
       "DELIVERY_TOO_SOON": "That is too soon for delivery — the earliest possible day is {earliest}.",
+      "DELIVERY_TOO_FAR": "Choose a day no later than {latest}.",
+      "ONE_TIME_SINGLE_DAY": "A one-time order is a single delivery — choose exactly {days} day.",
       "CONSULTATION_NOT_FOUND": "We could not find that consultation.",
       "NOT_DELIVERED": "We do not deliver to this postal code yet.",
       "INVALID_DATE": "That is not a valid date.",
