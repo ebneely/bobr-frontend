@@ -1066,15 +1066,15 @@ html.lenis body { height: auto; }
   color: color-mix(in srgb, var(--bobr-on-dark) 74%, transparent);
 }
 .bobr-printed__action { grid-column: 1 / -1; padding: 0 6px 6px 0; }
-/* The shell sets display inline; full width on the narrow card. */
-.bobr-printed__action .bobr-btn { display: block !important; }
+/* The shell is inline-flex; full width on the narrow card (the face grows with it). */
+.bobr-printed__action .bobr-btn { display: flex !important; }
 /* The face pads 36px a side inline; on this narrow card that wraps the label. */
 .bobr-printed__action .bobr-btn-face { width: 100%; padding-inline: 1.25rem !important; white-space: nowrap; }
 
 @media (min-width: 640px) and (max-width: 1079px) {
   .bobr-printed { grid-template-columns: 8.5rem minmax(0, 1fr) auto; }
   .bobr-printed__action { grid-column: auto; }
-  .bobr-printed__action .bobr-btn { display: inline-block !important; }
+  .bobr-printed__action .bobr-btn { display: inline-flex !important; }
 }
 @media (min-width: 1080px) {
   .bobr-printed { grid-template-columns: minmax(0, 1fr); padding: 1.5rem; }
@@ -1524,13 +1524,14 @@ html.lenis body { height: auto; }
 
 .bobr-hero__cta {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
   margin-top: var(--hero-gap-3);
   text-decoration: none;
 }
 .bobr-hero__cta .bobr-btn-face {
   position: relative;
   z-index: 1;
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
