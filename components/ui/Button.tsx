@@ -57,6 +57,10 @@ export function Button({
       style={{
         position: 'relative',
         zIndex: 1,
+        // flex: 1 — the face always fills the shell. The offset block is sized
+        // by the shell (inset: 0), so if the shell is stretched (a flex-column
+        // form, display:block) and the face is not, the block outgrows the face.
+        flex: '1 1 auto',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -93,7 +97,10 @@ export function Button({
 
   const shell: React.CSSProperties = {
     position: 'relative',
-    display: 'inline-block',
+    // inline-flex, not inline-block: the face is a flex item that grows to the
+    // shell in both axes, so face and offset block are the same box whatever
+    // width the caller's layout gives the control.
+    display: 'inline-flex',
     textDecoration: 'none',
     background: 'none',
     border: 0,
