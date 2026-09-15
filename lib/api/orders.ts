@@ -68,7 +68,12 @@ export interface CustomerNote {
   repliedAt: string | null;
   createdAt: string;
   orderId: string | null;
+  /** Included by `GET /notes` when the note is about one of the customer's orders. */
+  order?: { id: string; totalGrosze: number } | null;
 }
+
+/** Longest note body the server accepts (`RaiseNoteSchema`). */
+export const NOTE_BODY_MAX = 2000;
 
 export function apiPlaceOrder(input: {
   mealId: string;

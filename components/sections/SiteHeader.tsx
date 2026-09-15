@@ -111,7 +111,7 @@ export function SiteHeader() {
               <span aria-hidden className="bobr-topslot__tile">
                 <UserGlyph />
               </span>
-              <AccountNav />
+              <AccountNav variant="slot" />
             </div>
 
             <button
