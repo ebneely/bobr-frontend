@@ -100,7 +100,7 @@
     "perDay": "{price} / dzień",
     "mealsFailed": "Nie udało się wczytać diet. Odśwież stronę za chwilę.",
     "signInTitle": "Zaloguj się, aby zamówić",
-    "signInBody": "Zamówienie składasz na swoim koncie — dzięki temu dietetyk zna Twój profil, a dostawy i płatności widzisz w zakładce Moje konto. Nie masz konta? Założysz je w minutę.",
+    "signInBody": "Zamówienie składasz na swoim koncie — dzięki temu lekarz zna Twój profil, a dostawy i płatności widzisz w zakładce Moje konto. Nie masz konta? Założysz je w minutę.",
     "signIn": "Zaloguj się lub załóż konto",
     "goIntake": "Uzupełnij profil",
     "summaryTitle": "Podsumowanie zamówienia",
@@ -188,7 +188,7 @@
       "body": "Wybierasz dni w kalendarzu. Przy dłuższym planie dostawa jest po naszej stronie."
     },
     "c": {
-      "title": "Opieka dietetyka",
+      "title": "Opieka lekarza",
       "body": "Konsultacja z dr Abdelrahmanem przed posiłkiem i przed planem — opcjonalnie, 100 zł za sesję."
     }
   },
@@ -423,7 +423,7 @@
     "saved": "Profil zapisany.",
     "errSave": "Nie udało się zapisać profilu.",
     "errLoad": "Nie udało się wczytać profilu. Sprawdź, czy jesteś zalogowany.",
-    "photosIntro": "Cztery zdjęcia sylwetki: przód, tył oraz oba boki. Dietetyk ogląda je przed ułożeniem planu.",
+    "photosIntro": "Cztery zdjęcia sylwetki: przód, tył oraz oba boki. Lekarz ogląda je przed ułożeniem planu.",
     "photoMissing": "Brak",
     "photoDone": "Wgrane",
     "photoUploading": "Wysyłam…",
@@ -436,7 +436,7 @@
     "completeNo": "Profil jeszcze niekompletny — zamówienie zostanie odrzucone.",
     "goOrder": "Przejdź do zamówienia",
     "signInTitle": "Zaloguj się, aby uzupełnić profil",
-    "signInBody": "Profil — pomiary, aktywność i zdjęcia — zapisujemy na Twoim koncie, żeby dietetyk mógł ułożyć dietę tylko dla Ciebie.",
+    "signInBody": "Profil — pomiary, aktywność i zdjęcia — zapisujemy na Twoim koncie, żeby lekarz mógł ułożyć dietę tylko dla Ciebie.",
     "signIn": "Zaloguj się lub załóż konto",
     "completeYesNext": "Profil kompletny — możesz wrócić do zamówienia.",
     "completeNoNext": "Zanim złożysz zamówienie, uzupełnij profil: pomiary, aktywność i cztery zdjęcia. Potem wrócisz do zamówienia.",

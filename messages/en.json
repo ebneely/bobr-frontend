@@ -100,7 +100,7 @@
     "perDay": "{price} / day",
     "mealsFailed": "The diets could not be loaded. Refresh the page in a moment.",
     "signInTitle": "Sign in to order",
-    "signInBody": "Orders are placed from your account — that way the dietitian knows your profile, and you can follow deliveries and payments under My account. No account yet? It takes a minute to create one.",
+    "signInBody": "Orders are placed from your account — that way the doctor knows your profile, and you can follow deliveries and payments under My account. No account yet? It takes a minute to create one.",
     "signIn": "Sign in or create an account",
     "goIntake": "Complete your profile",
     "summaryTitle": "Order summary",
@@ -188,7 +188,7 @@
       "body": "Pick your days on the calendar. On a longer plan the delivery is on us."
     },
     "c": {
-      "title": "A dietitian in the loop",
+      "title": "A doctor in the loop",
       "body": "A consultation with Dr Abdelrahman before a meal and before a plan — optional, 100 PLN a session."
     }
   },
@@ -423,7 +423,7 @@
     "saved": "Profile saved.",
     "errSave": "Could not save your profile.",
     "errLoad": "Could not load your profile. Check that you are signed in.",
-    "photosIntro": "Four body photos: front, back and both sides. The dietitian looks at them before building your plan.",
+    "photosIntro": "Four body photos: front, back and both sides. The doctor looks at them before building your plan.",
     "photoMissing": "Missing",
     "photoDone": "Uploaded",
     "photoUploading": "Uploading…",
@@ -436,7 +436,7 @@
     "completeNo": "Profile not complete yet — an order would be refused.",
     "goOrder": "Go to ordering",
     "signInTitle": "Sign in to complete your profile",
-    "signInBody": "Your profile — measurements, activity and photos — is kept on your account so the dietitian can plan a diet for you alone.",
+    "signInBody": "Your profile — measurements, activity and photos — is kept on your account so the doctor can plan a diet for you alone.",
     "signIn": "Sign in or create an account",
     "completeYesNext": "Profile complete — you can go back to your order.",
     "completeNoNext": "Before you order, complete your profile: measurements, activity and four photos. Then you will go back to your order.",
