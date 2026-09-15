@@ -10,6 +10,7 @@ import {
   formatWarsawDate,
   nextDelivery,
   orderDayKey,
+  pricedDayCount,
   remainingDays,
   shortId,
 } from '@/lib/api/account-status';
@@ -114,7 +115,7 @@ function OrderDetail({ order }: { order: Order }) {
           <div className="bobr-acard__head">
             <h3 className="bobr-acard__title">{t('orders.daysTitle')}</h3>
             <span className="bobr-acard__body">
-              {t('orders.daysRemaining', { remaining: left, total: order.days.length })}
+              {t('orders.daysRemaining', { remaining: left, total: pricedDayCount(order) })}
             </span>
           </div>
           <DayList order={order} today={today} nextDay={next?.day ?? null} />
@@ -130,7 +131,7 @@ function OrderDetail({ order }: { order: Order }) {
               </div>
               <div>
                 <dt>{t('orders.days')}</dt>
-                <dd>{order.days.length}</dd>
+                <dd>{pricedDayCount(order)}</dd>
               </div>
               <div>
                 <dt>{t('orders.goods')}</dt>

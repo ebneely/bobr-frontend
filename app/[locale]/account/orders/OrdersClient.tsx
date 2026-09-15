@@ -7,6 +7,7 @@ import {
   formatWarsawDate,
   isOrderLive,
   orderDayRange,
+  pricedDayCount,
   remainingDays,
   shortId,
 } from '@/lib/api/account-status';
@@ -71,7 +72,7 @@ export function OrdersClient() {
                   </h3>
                   <div className="bobr-acard__meta">
                     <span>{t(`mode.${order.mode}`)}</span>
-                    <span>{t('orders.dayCount', { count: order.days.length })}</span>
+                    <span>{t('orders.dayCount', { count: pricedDayCount(order) })}</span>
                     {range ? (
                       <span>
                         {range.first === range.last
@@ -79,8 +80,8 @@ export function OrdersClient() {
                           : `${formatDayLabel(range.first, locale)} – ${formatDayLabel(range.last, locale)}`}
                       </span>
                     ) : null}
-                    {isOrderLive(order) && left > 0 && left < order.days.length ? (
-                      <span>{t('orders.daysRemaining', { remaining: left, total: order.days.length })}</span>
+                    {isOrderLive(order) && left > 0 && left < pricedDayCount(order) ? (
+                      <span>{t('orders.daysRemaining', { remaining: left, total: pricedDayCount(order) })}</span>
                     ) : null}
                   </div>
                   <div className="bobr-acard__meta" style={{ justifyContent: 'space-between' }}>

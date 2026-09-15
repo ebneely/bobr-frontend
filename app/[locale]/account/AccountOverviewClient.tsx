@@ -11,6 +11,7 @@ import {
   latestOrder,
   nextDelivery,
   noteState,
+  pricedDayCount,
   remainingDays,
   shortId,
   sortNotes,
@@ -345,7 +346,7 @@ function LatestOrderCard() {
       <div className="bobr-acard__meta">
         <span>{t('orders.number', { id: shortId(latest.id) })}</span>
         <span>{t(`mode.${latest.mode}`)}</span>
-        <span>{t('orders.dayCount', { count: latest.days.length })}</span>
+        <span>{t('orders.dayCount', { count: pricedDayCount(latest) })}</span>
       </div>
       <div className="bobr-acard__meta">
         <span>

@@ -13,6 +13,7 @@ import {
   orderDayRange,
   orderStatusTone,
   plainAmount,
+  pricedDayCount,
   remainingDays,
   shortId,
   sortNotes,
@@ -123,6 +124,20 @@ describe('delivery days', () => {
     expect(remainingDays(o, '2026-09-15')).toBe(2);
     expect(orderDayRange(o)).toEqual({ first: '2026-09-14', last: '2026-09-22' });
     expect(orderDayRange(order({}))).toBeNull();
+  });
+
+  it('does not count a skipped day as priced or a skipped/cancelled day as remaining or next', () => {
+    // 5-day plan, 20 Sep skipped → a 6th row added at the end (25 Sep).
+    const o = order({ days: ['2026-09-20', '2026-09-21', '2026-09-22', '2026-09-23', '2026-09-24', '2026-09-25'] });
+    o.days[0] = { ...o.days[0], status: 'SKIPPED' };
+    expect(pricedDayCount(o)).toBe(5);
+    expect(remainingDays(o, '2026-09-15')).toBe(5);
+    expect(nextDelivery([o], '2026-09-15')?.day).toBe('2026-09-21');
+    // Cancel the rest: still priced for 5, nothing remains, no next delivery.
+    const cancelled = { ...o, days: o.days.map((d, i) => (i === 0 ? d : { ...d, status: 'CANCELLED' as const })) };
+    expect(pricedDayCount(cancelled)).toBe(5);
+    expect(remainingDays(cancelled, '2026-09-15')).toBe(0);
+    expect(nextDelivery([cancelled], '2026-09-15')).toBeNull();
   });
 
   it('picks the most recently placed order', () => {

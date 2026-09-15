@@ -79,6 +79,8 @@ export function nextDelivery(orders: Order[], today: string): NextDelivery | nul
   for (const order of orders) {
     if (!isOrderLive(order)) continue;
     for (const d of order.days) {
+      // A skipped or cancelled day is not a delivery, even if its date is ahead.
+      if (d.status && d.status !== 'SCHEDULED') continue;
       const key = orderDayKey(d.deliverOn);
       if (key < today) continue;
       if (!best || key < best.day) best = { order, day: key };
@@ -87,9 +89,21 @@ export function nextDelivery(orders: Order[], today: string): NextDelivery | nul
   return best;
 }
 
-/** Days of one order still ahead of (or on) Warsaw today. */
+/** Scheduled days of one order still ahead of (or on) Warsaw today. */
 export function remainingDays(order: Pick<Order, 'days'>, today: string): number {
-  return order.days.filter((d) => orderDayKey(d.deliverOn) >= today).length;
+  return order.days.filter(
+    (d) => (!d.status || d.status === 'SCHEDULED') && orderDayKey(d.deliverOn) >= today,
+  ).length;
+}
+
+/**
+ * Days the order was priced for. A skip moves a delivery to the end of the plan
+ * by adding a new day and marking the old one SKIPPED, so counting rows would
+ * show 6 days next to a 5-day price. Cancelled days stay: they were priced, and
+ * the adjusted total says what is actually owed.
+ */
+export function pricedDayCount(order: Pick<Order, 'days'>): number {
+  return order.days.filter((d) => d.status !== 'SKIPPED').length;
 }
 
 /** First and last delivery day of an order, or null for an order with none. */
