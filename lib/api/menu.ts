@@ -1,4 +1,5 @@
 import { apiFetch } from './client';
+import type { ImageSrcSet } from '@/lib/images/srcset-loader';
 
 /**
  * The public menu. Mirrors the contract pinned in ebneely/bobr-backend#28 —
@@ -62,6 +63,14 @@ export interface MenuItem {
   allergens: Allergen[];
   tags: string[];
   imageUrl: string | null;
+  /**
+   * The same photo at 320/480/640/828/1080 px (key = delivered width), or null
+   * when storage cannot resize — then only `imageUrl` exists. See RemoteImage.
+   */
+  imageSrcSet: ImageSrcSet | null;
+  /** Pixel size of the stored photo; null for photos uploaded before backend#55. */
+  imageWidth: number | null;
+  imageHeight: number | null;
 }
 
 export interface MenuResponse {

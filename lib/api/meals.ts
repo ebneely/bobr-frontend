@@ -1,4 +1,5 @@
 import { apiFetch } from './client';
+import type { ImageSrcSet } from '@/lib/images/srcset-loader';
 
 /**
  * The public meal catalogue — `GET /v1/meals`, active meals only. Mirrors
@@ -15,6 +16,14 @@ export interface Meal {
   /** Integer grosze per delivery day, before any calendar discount. */
   priceGrosze: number;
   imageUrl: string | null;
+  /**
+   * The same photo at 320/480/640/828/1080 px (key = delivered width), or null
+   * when storage cannot resize — then only `imageUrl` exists. See RemoteImage.
+   */
+  imageSrcSet: ImageSrcSet | null;
+  /** Pixel size of the stored photo; null for photos uploaded before backend#55. */
+  imageWidth: number | null;
+  imageHeight: number | null;
 }
 
 /** Public — no session needed, so no cookie is sent. */

@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { MenuItem } from '@/lib/api/menu';
+import { RemoteImage } from '@/components/ui/RemoteImage';
 
 /**
  * The small pieces a dish is drawn from, shared by the menu card, the detail
@@ -10,20 +11,46 @@ import type { MenuItem } from '@/lib/api/menu';
  */
 
 /**
+ * `sizes` for a card in the menu page's dish grid (auto-fill, 15.5rem min):
+ * one column up to ~36rem, two up to ~64rem, then 3–4 columns of at most
+ * ~21rem. Erring high, as RemoteImage asks.
+ */
+const DISH_GRID_SIZES = '(max-width: 36rem) 100vw, (max-width: 64rem) 50vw, 22rem';
+
+/**
  * The photograph, or a quiet plate when the kitchen has not shot the dish yet.
  * Never rotated or skewed: food photography is shown straight.
+ *
+ * The frame's fixed ratio reserves the space and the photo is cropped into it,
+ * so a card never shifts when its photo arrives.
  */
-export function DishMedia({ item, ratio = '4 / 3' }: { item: MenuItem; ratio?: string }) {
+export function DishMedia({
+  item,
+  ratio = '4 / 3',
+  sizes = DISH_GRID_SIZES,
+}: {
+  item: MenuItem;
+  ratio?: string;
+  sizes?: string;
+}) {
+  const plate = <span className="bobr-dish-plate" aria-hidden />;
   return (
     <div className="bobr-dish-media" style={{ aspectRatio: ratio }}>
       {item.imageUrl ? (
-        // A plain <img>, not next/image: served by the API or image host on
-        // another origin, already resized there. alt="" because the dish name
-        // is the heading right beside it — announcing it twice is noise.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.imageUrl} alt="" loading="lazy" decoding="async" />
+        // alt="" because the dish name is the heading right beside it —
+        // announcing it twice is noise.
+        <RemoteImage
+          src={item.imageUrl}
+          srcSet={item.imageSrcSet}
+          width={item.imageWidth}
+          height={item.imageHeight}
+          ratio={ratio}
+          sizes={sizes}
+          alt=""
+          fallback={plate}
+        />
       ) : (
-        <span className="bobr-dish-plate" aria-hidden />
+        plate
       )}
     </div>
   );

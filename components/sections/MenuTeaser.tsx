@@ -60,7 +60,12 @@ export function MenuTeaser() {
                 aria-label={t('teaser.dishLink', { name: dish.name })}
               >
                 <div className="bobr-card__media">
-                  <DishMedia item={dish} ratio="5 / 4" />
+                  <DishMedia
+                    item={dish}
+                    ratio="5 / 4"
+                    // A 17rem scroll strip on phones, then --n equal columns.
+                    sizes={`(max-width: 47.5rem) 17rem, ${Math.ceil(100 / Math.max(dishes.length, 1))}vw`}
+                  />
                 </div>
                 <span className="bobr-teaser__name">{dish.name}</span>
                 <NutritionLine item={dish} />

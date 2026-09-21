@@ -28,6 +28,9 @@ function dish(id: string, course: MenuCourse): MenuItem {
     allergens: [],
     tags: [],
     imageUrl: null,
+    imageSrcSet: null,
+    imageWidth: null,
+    imageHeight: null,
   };
 }
 

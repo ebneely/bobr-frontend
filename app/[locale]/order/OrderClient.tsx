@@ -9,7 +9,8 @@ import { GateCard } from '@/components/ui/GateCard';
 import { ApiError, formatApiError } from '@/lib/api/client';
 import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import { apiQuoteZone, type ZoneQuote } from '@/lib/api/delivery-zones';
-import { mealName } from '@/lib/api/meals';
+import { mealName, type Meal } from '@/lib/api/meals';
+import { RemoteImage } from '@/components/ui/RemoteImage';
 import {
   formatGrosze,
   type OrderDelivery,
@@ -172,6 +173,8 @@ export function OrderClient({
   // Every card gets a frame as soon as ANY meal has a photo, so a catalogue
   // that is only half photographed does not render cards at two heights.
   const anyPhoto = mealList.some((m) => m.imageUrl);
+  // The meal grid is auto-fit 14rem columns in a 52rem page: at most three.
+  const mealImageSizes = `(max-width: 30rem) 100vw, ${Math.ceil(52 / Math.min(Math.max(mealList.length, 1), 3))}rem`;
 
   const request = buildQuoteRequest({ mealId, mode, days, addressLine, city, postalCode });
   const quoteQuery = useOrderQuote(signedIn && !authLost ? request : { ready: false, missing: 'meal' });
@@ -363,7 +366,8 @@ export function OrderClient({
               onSelect={() => setPickedMealId(m.id)}
               title={mealName(m, locale)}
               note={t('perDay', { price: formatGrosze(m.priceGrosze, locale) })}
-              imageUrl={m.imageUrl}
+              image={m}
+              imageSizes={mealImageSizes}
               showFrame={anyPhoto}
             />
           ))}
@@ -918,7 +922,8 @@ function Choice({
   onSelect,
   title,
   note,
-  imageUrl,
+  image,
+  imageSizes = '100vw',
   showFrame = false,
 }: {
   name: string;
@@ -927,7 +932,8 @@ function Choice({
   onSelect: () => void;
   title: string;
   note: string;
-  imageUrl?: string | null;
+  image?: Pick<Meal, 'imageUrl' | 'imageSrcSet' | 'imageWidth' | 'imageHeight'>;
+  imageSizes?: string;
   showFrame?: boolean;
 }) {
   return (
@@ -963,15 +969,17 @@ function Choice({
             background: 'var(--bobr-bg-alt)',
           }}
         >
-          {imageUrl && (
-            // A plain <img>: the photo is served by the API on another origin
-            // and is already webp. alt="" because the name sits directly below.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imageUrl}
+          {image?.imageUrl && (
+            // alt="" because the name sits directly below. The frame's 4 / 3
+            // reserves the space; the photo is cropped into it.
+            <RemoteImage
+              src={image.imageUrl}
+              srcSet={image.imageSrcSet}
+              width={image.imageWidth}
+              height={image.imageHeight}
+              ratio="4 / 3"
+              sizes={imageSizes}
               alt=""
-              loading="lazy"
-              decoding="async"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           )}

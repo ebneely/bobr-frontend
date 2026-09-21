@@ -3,6 +3,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Slider } from '@/components/ui/Slider';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
 import { Button } from '@/components/ui/Button';
+import { RemoteImage } from '@/components/ui/RemoteImage';
 import { mealDescription, mealName, type Meal } from '@/lib/api/meals';
 import { formatGrosze } from '@/lib/api/orders';
 import { CONSULTATION_PRICE_GROSZE } from '@/lib/api/consultations';
@@ -104,15 +105,19 @@ async function MealCard({
     <article className="bobr-card" data-testid="diet-card" data-meal={meal.id} style={cardStyle}>
       <div className="bobr-card__media">
         {meal.imageUrl ? (
-          // A plain <img>: the photo is on the API's image host and already sized.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // The slide is min(--bobr-ticker-item = 396px, 82vw) wide.
+          <RemoteImage
             src={meal.imageUrl}
+            srcSet={meal.imageSrcSet}
+            width={meal.imageWidth}
+            height={meal.imageHeight}
+            ratio="4 / 3"
+            sizes="(max-width: 483px) 82vw, 396px"
             alt=""
-            loading="lazy"
-            decoding="async"
+            fallback={<PlaceholderMedia tone={tone} ratio="4 / 3" />}
             style={{
               width: '100%',
+              height: 'auto',
               aspectRatio: '4 / 3',
               objectFit: 'cover',
               display: 'block',

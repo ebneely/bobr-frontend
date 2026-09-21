@@ -77,7 +77,8 @@ export function DishDialog({ item, onClose }: { item: MenuItem | null; onClose: 
           </button>
 
           <div className="bobr-dish-dialog__media">
-            <DishMedia item={item} ratio="16 / 10" />
+            {/* The dialog is min(40rem, 100vw - 2rem) wide. */}
+            <DishMedia item={item} ratio="16 / 10" sizes="(max-width: 42rem) 100vw, 40rem" />
           </div>
 
           <div className="bobr-dish-dialog__body">

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import type { MenuDocument } from '@/lib/api/menu';
 import { Button } from '@/components/ui/Button';
+import { RemoteImage } from '@/components/ui/RemoteImage';
 import { ExternalIcon } from './MenuIcons';
 
 /**
@@ -36,8 +37,17 @@ export function PrintedMenuCard({ document }: { document: MenuDocument }) {
         aria-hidden
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" loading="lazy" decoding="async" />
+          // The API sends no width ladder for the menu file, so this is the
+          // plain <img> path of RemoteImage — kept for its fallback: a preview
+          // that fails to load shows the drawn sheet, not a broken frame. The
+          // sheet's 3 / 4 box (globals.css) reserves the space.
+          <RemoteImage
+            src={preview}
+            alt=""
+            ratio="3 / 4"
+            sizes="(max-width: 639px) 6rem, (max-width: 1079px) 8.5rem, 12rem"
+            fallback={<DrawnSheet appName={tc('appName')} />}
+          />
         ) : (
           <DrawnSheet appName={tc('appName')} />
         )}

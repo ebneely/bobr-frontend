@@ -167,6 +167,15 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  images: {
+    // Next's defaults plus 320 and 480. Catalogue photos (RemoteImage) come
+    // with a server-rendered ladder of 320/480/640/828/1080 and a custom
+    // loader, and Next only asks the loader for these widths: with the default
+    // list, which starts at 640, a `sizes` in vw never reaches the two phone
+    // rungs. No remotePatterns: the custom loader never goes through
+    // /_next/image, and the hero's own image is a local file.
+    deviceSizes: [320, 480, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
