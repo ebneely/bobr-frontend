@@ -13,7 +13,10 @@ const config: Config = {
   // .next/standalone, so Jest's module map sees two packages both named
   // bobr-frontend and warns on every run. The build output is not a source
   // tree; keep it out of the map entirely.
-  modulePathIgnorePatterns: ['<rootDir>/.next/'],
+  modulePathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/.claude/'],
+  // Agent worktrees live in .claude/worktrees INSIDE this repo; their copies
+  // of __tests__ would otherwise run against this checkout's lib.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/.claude/'],
   collectCoverageFrom: [
     'lib/**/*.{ts,tsx}',
     'app/**/*.{ts,tsx}',
