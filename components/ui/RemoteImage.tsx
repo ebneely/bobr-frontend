@@ -58,6 +58,8 @@ export interface RemoteImageProps {
   style?: React.CSSProperties;
   /** Shown only when both the srcset and the plain URL failed to load. */
   fallback?: React.ReactNode;
+  /** The page's largest paint (a hero): load eagerly, at high priority. */
+  priority?: boolean;
 }
 
 /** Width written onto the tag when the backend does not know the photo's size: the top rung. */
@@ -90,6 +92,7 @@ export function RemoteImage({
   className,
   style,
   fallback = null,
+  priority = false,
 }: RemoteImageProps) {
   // 0: srcset via next/image, 1: plain <img> of `src`, 2: both failed. Keyed
   // by `src`, so a different photo gets a fresh try rather than the previous
@@ -112,7 +115,8 @@ export function RemoteImage({
         alt={alt}
         width={size.width}
         height={size.height}
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : undefined}
         decoding="async"
         className={className}
         style={style}
@@ -131,6 +135,7 @@ export function RemoteImage({
       height={size.height}
       className={className}
       style={style}
+      priority={priority}
       onError={() => setStage(1)}
     />
   );

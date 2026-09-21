@@ -17,29 +17,24 @@ import { useApiErrorTranslate } from '@/lib/api/use-api-error';
 import {
   apiBookConsultation,
   CONSULTATION_NOTE_MAX,
-  CONSULTATION_PRICE_GROSZE,
   type Consultation,
   type ConsultationContext,
 } from '@/lib/api/consultations';
 import { formatGrosze } from '@/lib/api/orders';
 import { apiGetPaymentSettings, type PaymentSettings } from '@/lib/api/settings';
 import { authClient } from '@/lib/auth/client';
+import { usePublicSettings } from '@/lib/hooks/use-settings';
 import {
-  daysThroughEndOfNextMonth,
+  daysThroughEndOfMonthsAfter,
   formatDayLabel,
   formatLongDay,
   formatMonthLabel,
   groupByMonth,
+  slotTimes,
   warsawDaysFromToday,
   warsawWallClockToIso,
 } from '@/lib/dates';
 import { formatBlikPhone } from '@/lib/delivery';
-
-/** Full and half hours, 08:00 through 20:00, Warsaw wall clock. */
-const TIMES: string[] = Array.from({ length: 25 }, (_, i) => {
-  const minutes = 8 * 60 + i * 30;
-  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-});
 
 const controlStyle: CSSProperties = {
   width: '100%',
@@ -66,11 +61,24 @@ export function ConsultationClient() {
   const ids = useId();
 
   const { data: session, isPending } = authClient.useSession();
+  // Price and bookable times are the admin's (`/v1/settings/public`).
+  const settings = usePublicSettings().data;
+  const times = useMemo(
+    () =>
+      settings
+        ? slotTimes(
+            settings.consultationSlotStart,
+            settings.consultationSlotEnd,
+            settings.consultationSlotStepMinutes,
+          )
+        : [],
+    [settings],
+  );
 
   // Bookable from Warsaw tomorrow through the end of next month.
   const dayGroups = useMemo(() => {
     const first = warsawDaysFromToday(1);
-    return groupByMonth(daysThroughEndOfNextMonth(first)).map((g) => ({
+    return groupByMonth(daysThroughEndOfMonthsAfter(first, 1)).map((g) => ({
       month: g.month,
       label: formatMonthLabel(g.month, locale),
       days: g.days.map((iso) => ({ iso, label: formatDayLabel(iso, locale) })),
@@ -79,7 +87,9 @@ export function ConsultationClient() {
 
   const [context, setContext] = useState<ConsultationContext>('BEFORE_PLAN');
   const [day, setDay] = useState<string>(() => warsawDaysFromToday(1));
-  const [time, setTime] = useState<string>('10:00');
+  const [pickedTime, setTime] = useState<string | null>(null);
+  // Until the customer picks, the first slot the admin offers.
+  const time = pickedTime !== null && times.includes(pickedTime) ? pickedTime : (times[0] ?? '');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -236,7 +246,7 @@ export function ConsultationClient() {
               onChange={(e) => setTime(e.target.value)}
               style={controlStyle}
             >
-              {TIMES.map((slot) => (
+              {times.map((slot) => (
                 <option key={slot} value={slot}>
                   {slot}
                 </option>
@@ -285,15 +295,17 @@ export function ConsultationClient() {
           alignItems: 'flex-start',
         }}
       >
-        <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
-          {t('price')}:{' '}
-          <strong
-            data-testid="consultation-price"
-            style={{ color: 'var(--bobr-accent)', fontWeight: 'var(--bobr-weight-bold)' }}
-          >
-            {formatGrosze(CONSULTATION_PRICE_GROSZE, locale)}
-          </strong>
+        {settings && (
+          <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
+            {t('price')}:{' '}
+            <strong
+              data-testid="consultation-price"
+              style={{ color: 'var(--bobr-accent)', fontWeight: 'var(--bobr-weight-bold)' }}
+            >
+              {formatGrosze(settings.consultationPriceGrosze, locale)}
+            </strong>
         </p>
+        )}
 
         <p
           role="status"

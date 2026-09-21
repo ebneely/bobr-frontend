@@ -21,8 +21,19 @@ import {
 
 export const WARSAW = 'Europe/Warsaw';
 
-/** Delivery lead time in days. Matches the server's rule. */
-export const DELIVERY_LEAD_DAYS = 2;
+/**
+ * The admin-edited calendar rules (`/v1/settings/public`, ebneely/bobr-backend#57).
+ * Always passed in, never defaulted: a default here would be a second copy of
+ * the owner's numbers. The server enforces the same rules on the quote/order.
+ */
+export interface CalendarRules {
+  leadDays: number;
+  /** Warsaw hour from which today stops counting; null = no cut-off. */
+  orderCutoffHour: number | null;
+  orderWindowMonths: number;
+  /** ISO weekdays delivered, 1 = Monday … 7 = Sunday. */
+  deliveryWeekdays: number[];
+}
 
 const inWarsaw = tz(WARSAW);
 const DAY = 'yyyy-MM-dd';
@@ -50,27 +61,54 @@ export function warsawDaysFromToday(days: number, now: Date = new Date()): strin
   });
 }
 
-/** The first day that can be delivered: Warsaw today + the lead time. */
-export function earliestDeliveryDay(now: Date = new Date()): string {
-  return warsawDaysFromToday(DELIVERY_LEAD_DAYS, now);
+/**
+ * The first day that can be delivered: Warsaw today + the lead time, one day
+ * later once the Warsaw clock has passed the order cut-off hour.
+ */
+export function earliestDeliveryDay(
+  rules: Pick<CalendarRules, 'leadDays' | 'orderCutoffHour'>,
+  now: Date = new Date(),
+): string {
+  const pastCutoff =
+    rules.orderCutoffHour !== null &&
+    Number(format(now, 'H', { in: inWarsaw })) >= rules.orderCutoffHour;
+  return warsawDaysFromToday(rules.leadDays + (pastCutoff ? 1 : 0), now);
 }
 
 /**
  * Every `YYYY-MM-DD` from `first` through the last day of the calendar month
- * after `first`'s month — so any whole month that starts on or after `first`
- * can be picked in full.
+ * `months` after `first`'s month — with 1, any whole month that starts on or
+ * after `first` can be picked in full.
  */
-export function daysThroughEndOfNextMonth(first: string): string[] {
+export function daysThroughEndOfMonthsAfter(first: string, months: number): string[] {
   const start = warsawDay(first);
-  const end = endOfMonth(addMonths(start, 1, { in: inWarsaw }), { in: inWarsaw });
+  const end = endOfMonth(addMonths(start, months, { in: inWarsaw }), { in: inWarsaw });
   return eachDayOfInterval({ start, end }, { in: inWarsaw }).map((d) =>
     format(d, DAY, { in: inWarsaw }),
   );
 }
 
-/** The delivery days on offer: earliest delivery day to the end of next month. */
-export function offeredDeliveryDays(now: Date = new Date()): string[] {
-  return daysThroughEndOfNextMonth(earliestDeliveryDay(now));
+/** ISO weekday of a Warsaw day, 1 = Monday … 7 = Sunday. */
+export function isoWeekday(day: string): number {
+  return Number(format(warsawDay(day), 'i', { in: inWarsaw }));
+}
+
+/** Whether the kitchen delivers on `day`: a delivered weekday, not closed. */
+export function isDeliveryDay(
+  day: string,
+  rules: Pick<CalendarRules, 'deliveryWeekdays'>,
+  closedDays: ReadonlySet<string>,
+): boolean {
+  return rules.deliveryWeekdays.includes(isoWeekday(day)) && !closedDays.has(day);
+}
+
+/**
+ * The calendar grid for ordering: earliest delivery day to the end of the
+ * order window. Every day is returned so the grid keeps its shape; use
+ * `isDeliveryDay` to tell which ones can be picked.
+ */
+export function offeredDeliveryDays(rules: CalendarRules, now: Date = new Date()): string[] {
+  return daysThroughEndOfMonthsAfter(earliestDeliveryDay(rules, now), rules.orderWindowMonths);
 }
 
 /** `YYYY-MM` of a `YYYY-MM-DD`, for grouping days by month. */
@@ -133,4 +171,26 @@ export function warsawWallClockToIso(day: string, time: string): string {
   const [y, m, d] = day.split('-').map(Number);
   const [hh, mm] = time.split(':').map(Number);
   return new Date(new TZDate(y, m - 1, d, hh, mm, WARSAW).getTime()).toISOString();
+}
+
+/**
+ * Consultation slots as `HH:mm`, Warsaw wall clock: `start` through `end`
+ * INCLUSIVE, every `stepMinutes` from `start` — the admin's settings, and the
+ * exact set the API accepts.
+ */
+export function slotTimes(start: string, end: string, stepMinutes: number): string[] {
+  const toMinutes = (hhmm: string) => {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const first = toMinutes(start);
+  const last = toMinutes(end);
+  if (!(stepMinutes > 0) || last < first) return [];
+  const slots: string[] = [];
+  for (let minutes = first; minutes <= last; minutes += stepMinutes) {
+    slots.push(
+      `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`,
+    );
+  }
+  return slots;
 }

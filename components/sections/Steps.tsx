@@ -4,6 +4,7 @@ import { Reveal } from '@/components/motion/Reveal';
 import { Parallax } from '@/components/motion/Parallax';
 import { PatternBackdrop } from '@/components/motion/PatternBackdrop';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
+import { getPublicSettingsForServer } from '@/lib/api/server-settings';
 
 /**
  * The four steps from account to first delivery, taken straight from the spec.
@@ -15,6 +16,15 @@ import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
 export async function Steps() {
   const t = await getTranslations('steps');
   const steps = ['one', 'two', 'three', 'four'] as const;
+  // Step three quotes the admin's calendar minimum; without settings it says
+  // the same thing without a number rather than guessing one.
+  const settings = await getPublicSettingsForServer();
+  const body = (step: (typeof steps)[number]) =>
+    step !== 'three'
+      ? t(`${step}.body`)
+      : settings
+        ? t('three.body', { minDays: settings.calendarMinDays })
+        : t('three.bodyGeneric');
 
   return (
     <section
@@ -92,7 +102,7 @@ export async function Steps() {
                       className="bobr-body"
                       style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.375rem' }}
                     >
-                      {t(`${step}.body`)}
+                      {body(step)}
                     </p>
                   </div>
                 </div>

@@ -22,7 +22,9 @@ import {
   formatDayLabel,
   formatMonthLabel,
   groupByMonth,
+  isDeliveryDay,
   offeredDeliveryDays,
+  todayInWarsaw,
 } from '@/lib/dates';
 import {
   ADDRESS_LINE_MAX,
@@ -34,12 +36,12 @@ import {
 } from '@/lib/delivery';
 import { useMe } from '@/lib/hooks/use-account';
 import { useMeals, useOrderQuote, usePlaceOrder } from '@/lib/hooks/use-order';
+import { useClosedDays, usePublicSettings } from '@/lib/hooks/use-settings';
 import {
   breakdownOf,
   buildQuoteRequest,
   canPlaceOrder,
   classifyQuoteError,
-  MIN_CALENDAR_DAYS,
   summaryState,
   type Breakdown,
   type SummaryState,
@@ -80,6 +82,10 @@ export function OrderClient({
 
   const meals = useMeals();
   const mealList = useMemo(() => meals.data ?? [], [meals.data]);
+  // The calendar and order rules are the admin's (`/v1/settings/public`);
+  // nothing is offered until they have arrived rather than guessing them.
+  const settings = usePublicSettings().data ?? null;
+  const closedDays = useClosedDays(todayInWarsaw()).data;
 
   // null = not chosen by hand yet: the `?meal=` one when it is on offer,
   // otherwise the first. Derived, so it follows the list when it arrives.
@@ -156,19 +162,23 @@ export function OrderClient({
       : { state: 'idle' };
 
   /**
-   * The days on offer: Warsaw today + lead time, through the end of the
-   * following calendar month, so any whole month can be picked in full.
-   * Counted in Europe/Warsaw by `lib/dates` — never the browser's zone.
+   * The days on offer: Warsaw today + the admin's lead time (and cut-off hour),
+   * through the end of the order window. Days the kitchen does not deliver
+   * (weekday off, closed day) stay in the grid so it keeps its shape, but
+   * cannot be picked. Counted in Europe/Warsaw by `lib/dates`.
    */
-  const offered = useMemo(
-    () =>
-      groupByMonth(offeredDeliveryDays()).map((group) => ({
-        month: group.month,
-        label: formatMonthLabel(group.month, locale),
-        days: group.days.map((iso) => ({ iso, label: formatDayLabel(iso, locale) })),
+  const offered = useMemo(() => {
+    if (!settings || !closedDays) return [];
+    return groupByMonth(offeredDeliveryDays(settings)).map((group) => ({
+      month: group.month,
+      label: formatMonthLabel(group.month, locale),
+      days: group.days.map((iso) => ({
+        iso,
+        label: formatDayLabel(iso, locale),
+        open: isDeliveryDay(iso, settings, closedDays),
       })),
-    [locale],
-  );
+    }));
+  }, [locale, settings, closedDays]);
 
   // Every card gets a frame as soon as ANY meal has a photo, so a catalogue
   // that is only half photographed does not render cards at two heights.
@@ -176,7 +186,17 @@ export function OrderClient({
   // The meal grid is auto-fit 14rem columns in a 52rem page: at most three.
   const mealImageSizes = `(max-width: 30rem) 100vw, ${Math.ceil(52 / Math.min(Math.max(mealList.length, 1), 3))}rem`;
 
-  const request = buildQuoteRequest({ mealId, mode, days, addressLine, city, postalCode });
+  const request = settings
+    ? buildQuoteRequest({
+        mealId,
+        mode,
+        days,
+        addressLine,
+        city,
+        postalCode,
+        rules: settings,
+      })
+    : ({ ready: false, missing: 'days' } as const);
   const quoteQuery = useOrderQuote(signedIn && !authLost ? request : { ready: false, missing: 'meal' });
   const summary: SummaryState = summaryState(request, quoteQuery);
 
@@ -233,9 +253,18 @@ export function OrderClient({
 
   function toggleDay(iso: string) {
     setDays((previous) => {
-      // A one-time order is exactly one delivery (backend ONE_TIME_SINGLE_DAY),
-      // so picking a day replaces the selection instead of adding to it.
-      if (mode === 'ONE_TIME') return previous.has(iso) ? new Set() : new Set([iso]);
+      // A one-time order has the admin's fixed day count: with one day,
+      // picking replaces the selection; with more, extra picks are ignored.
+      if (mode === 'ONE_TIME') {
+        const limit = settings?.oneTimeDayCount ?? 1;
+        if (previous.has(iso)) {
+          const next = new Set(previous);
+          next.delete(iso);
+          return next;
+        }
+        if (limit === 1) return new Set([iso]);
+        return previous.size < limit ? new Set([...previous, iso]) : previous;
+      }
       const next = new Set(previous);
       if (next.has(iso)) next.delete(iso);
       else next.add(iso);
@@ -391,7 +420,14 @@ export function OrderClient({
             checked={mode === 'CALENDAR'}
             onSelect={() => setMode('CALENDAR')}
             title={t('calendar')}
-            note={t('calendarNote')}
+            note={
+              settings
+                ? t('calendarNote', {
+                    free: settings.calendarFreeShipping ? 'yes' : 'no',
+                    minDays: settings.calendarMinDays,
+                  })
+                : ''
+            }
           />
           <Choice
             name="mode"
@@ -399,24 +435,36 @@ export function OrderClient({
             checked={mode === 'ONE_TIME'}
             onSelect={() => {
               setMode('ONE_TIME');
-              // Keep only the earliest chosen day: one-time means one delivery.
-              setDays((previous) => {
-                const earliest = [...previous].sort()[0];
-                return earliest ? new Set([earliest]) : new Set();
-              });
+              // Keep only the earliest chosen days, up to the one-time count.
+              setDays(
+                (previous) =>
+                  new Set([...previous].sort().slice(0, settings?.oneTimeDayCount ?? 1)),
+              );
             }}
             title={t('oneTime')}
-            note={t('oneTimeNote')}
+            note={settings ? t('oneTimeNote', { count: settings.oneTimeDayCount }) : ''}
           />
         </div>
-        {mode === 'CALENDAR' ? (
+        {mode === 'CALENDAR' && settings ? (
           <>
             <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.75rem' }}>
-              {t('shippingFree')}
+              {settings.calendarFreeShipping ? t('shippingFree') : t('shippingByZone')}
             </p>
-            <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.25rem' }}>
-              {t('ladder')}
-            </p>
+            {(settings.discountTiers.length > 0 || settings.wholeMonthPercent > 0) && (
+              <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.25rem' }}>
+                {[
+                  t('ladder'),
+                  [
+                    ...settings.discountTiers.map((tier) =>
+                      t('ladderTier', { days: tier.minDays, percent: tier.percent }),
+                    ),
+                    ...(settings.wholeMonthPercent > 0
+                      ? [t('ladderMonth', { percent: settings.wholeMonthPercent })]
+                      : []),
+                  ].join(' · '),
+                ].join(' ')}
+              </p>
+            )}
           </>
         ) : (
           <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.75rem' }}>
@@ -430,12 +478,16 @@ export function OrderClient({
           {t('pickDays')}
         </legend>
         <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginBottom: '0.875rem' }}>
-          {t('leadTime')}
+          {offered.length > 0 &&
+            t('leadTime', {
+              earliest: offered[0].days[0].label,
+              latest: offered[offered.length - 1].days.at(-1)?.label ?? '',
+            })}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {offered.map((group) => {
-            const isos = group.days.map((d) => d.iso);
+            const isos = group.days.filter((d) => d.open).map((d) => d.iso);
             const allOn = isos.every((iso) => days.has(iso));
             return (
               <div
@@ -495,6 +547,7 @@ export function OrderClient({
                 >
                   {group.days.map((day) => {
                     const on = days.has(day.iso);
+                    const closed = !day.open;
                     return (
                       <label
                         key={day.iso}
@@ -503,7 +556,9 @@ export function OrderClient({
                           alignItems: 'center',
                           justifyContent: 'center',
                           padding: '0.6rem 0.4rem',
-                          cursor: 'pointer',
+                          cursor: closed ? 'not-allowed' : 'pointer',
+                          opacity: closed ? 0.45 : 1,
+                          textDecoration: closed ? 'line-through' : undefined,
                           fontSize: 'var(--bobr-text-sm)',
                           textAlign: 'center',
                           whiteSpace: 'nowrap',
@@ -522,6 +577,8 @@ export function OrderClient({
                         <input
                           type="checkbox"
                           checked={on}
+                          disabled={closed}
+                          aria-label={closed ? `${day.label} — ${t('dayClosed')}` : undefined}
                           value={day.iso}
                           onChange={() => toggleDay(day.iso)}
                           style={{
@@ -544,7 +601,10 @@ export function OrderClient({
 
         <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)', marginTop: '0.875rem' }}>
           {t('selected', { count: days.size })}
-          {mode === 'CALENDAR' && days.size < MIN_CALENDAR_DAYS && ` — ${t('minDays')}`}
+          {mode === 'CALENDAR' &&
+            settings &&
+            days.size < settings.calendarMinDays &&
+            ` — ${t('minDays', { minDays: settings.calendarMinDays })}`}
         </p>
       </fieldset>
 
@@ -685,6 +745,7 @@ export function OrderClient({
           mealLabel={meal ? mealName(meal, locale) : null}
           intakeHref={intakeHref}
           notDelivered={notDelivered}
+          minDays={settings?.calendarMinDays ?? 0}
         />
 
         <p
@@ -725,12 +786,15 @@ function SummaryBody({
   mealLabel,
   intakeHref,
   notDelivered,
+  minDays,
 }: {
   summary: SummaryState;
   needsIntake: boolean;
   mealLabel: string | null;
   intakeHref: { pathname: '/intake'; query: { next: string } };
   notDelivered: boolean;
+  /** The admin's calendar minimum, for the "pick more days" hint. */
+  minDays: number;
 }) {
   const t = useTranslations('order');
   const translateError = useApiErrorTranslate();
@@ -762,7 +826,9 @@ function SummaryBody({
 
   switch (summary.state) {
     case 'incomplete':
-      return hint(t(`summaryMissing.${summary.missing}`));
+      return hint(
+        t(`summaryMissing.${summary.missing}`, { minDays }),
+      );
     case 'loading':
       return hint(t('summaryLoading'));
     case 'refused':

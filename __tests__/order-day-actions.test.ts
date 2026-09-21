@@ -4,6 +4,8 @@ import type { Order, OrderDay } from '@/lib/api/orders';
 // Fixed "now": Warsaw 2026-09-15T10:00 CEST → earliest changeable day is
 // 2026-09-17 (lead time 2 days), matching `earliestDeliveryDay` in lib/dates.
 const NOW = new Date('2026-09-15T08:00:00.000Z');
+// The registry default for changeCutoffDays as of 2026-09-21.
+const CUTOFF = 2;
 const TODAY = '2026-09-15';
 
 function day(partial: Partial<OrderDay> & { deliverOn: string }): OrderDay {
@@ -43,46 +45,46 @@ function order(partial: Partial<Order> & { days: OrderDay[] }): Order {
 
 describe('canChangeScheduledDay', () => {
   it('refuses a day inside the lead-time window', () => {
-    expect(canChangeScheduledDay('2026-09-15', NOW)).toBe(false);
-    expect(canChangeScheduledDay('2026-09-16', NOW)).toBe(false);
+    expect(canChangeScheduledDay('2026-09-15', CUTOFF, NOW)).toBe(false);
+    expect(canChangeScheduledDay('2026-09-16', CUTOFF, NOW)).toBe(false);
   });
 
   it('allows a day at or after the lead-time deadline', () => {
-    expect(canChangeScheduledDay('2026-09-17', NOW)).toBe(true);
-    expect(canChangeScheduledDay('2026-09-30', NOW)).toBe(true);
+    expect(canChangeScheduledDay('2026-09-17', CUTOFF, NOW)).toBe(true);
+    expect(canChangeScheduledDay('2026-09-30', CUTOFF, NOW)).toBe(true);
   });
 });
 
 describe('dayActions', () => {
   it('offers tracking, never skip/move, for a past day', () => {
-    const actions = dayActions(day({ deliverOn: '2026-09-14T00:00:00.000Z' }), TODAY, NOW);
+    const actions = dayActions(day({ deliverOn: '2026-09-14T00:00:00.000Z' }), TODAY, CUTOFF, NOW);
     expect(actions).toEqual({ canTrack: true, canSkip: false, canMove: false });
   });
 
   it('offers tracking for today', () => {
-    const actions = dayActions(day({ deliverOn: '2026-09-15T00:00:00.000Z' }), TODAY, NOW);
+    const actions = dayActions(day({ deliverOn: '2026-09-15T00:00:00.000Z' }), TODAY, CUTOFF, NOW);
     expect(actions).toEqual({ canTrack: true, canSkip: false, canMove: false });
   });
 
   it('locks a future day still inside the deadline — no action at all', () => {
-    const actions = dayActions(day({ deliverOn: '2026-09-16T00:00:00.000Z' }), TODAY, NOW);
+    const actions = dayActions(day({ deliverOn: '2026-09-16T00:00:00.000Z' }), TODAY, CUTOFF, NOW);
     expect(actions).toEqual({ canTrack: false, canSkip: false, canMove: false });
   });
 
   it('offers skip and move for a future SCHEDULED day past the deadline', () => {
-    const actions = dayActions(day({ deliverOn: '2026-09-20T00:00:00.000Z' }), TODAY, NOW);
+    const actions = dayActions(day({ deliverOn: '2026-09-20T00:00:00.000Z' }), TODAY, CUTOFF, NOW);
     expect(actions).toEqual({ canTrack: false, canSkip: true, canMove: true });
   });
 
   it('never offers anything for a CANCELLED day, past or future', () => {
-    const past = dayActions(day({ deliverOn: '2026-09-14T00:00:00.000Z', status: 'CANCELLED' }), TODAY, NOW);
-    const future = dayActions(day({ deliverOn: '2026-09-25T00:00:00.000Z', status: 'CANCELLED' }), TODAY, NOW);
+    const past = dayActions(day({ deliverOn: '2026-09-14T00:00:00.000Z', status: 'CANCELLED' }), TODAY, CUTOFF, NOW);
+    const future = dayActions(day({ deliverOn: '2026-09-25T00:00:00.000Z', status: 'CANCELLED' }), TODAY, CUTOFF, NOW);
     expect(past).toEqual({ canTrack: false, canSkip: false, canMove: false });
     expect(future).toEqual({ canTrack: false, canSkip: false, canMove: false });
   });
 
   it('does not offer skip/move for a future day already SKIPPED', () => {
-    const actions = dayActions(day({ deliverOn: '2026-09-25T00:00:00.000Z', status: 'SKIPPED' }), TODAY, NOW);
+    const actions = dayActions(day({ deliverOn: '2026-09-25T00:00:00.000Z', status: 'SKIPPED' }), TODAY, CUTOFF, NOW);
     expect(actions).toEqual({ canTrack: false, canSkip: false, canMove: false });
   });
 });
@@ -90,7 +92,7 @@ describe('dayActions', () => {
 describe('canCancelRemaining', () => {
   it('refuses an already-cancelled order', () => {
     expect(
-      canCancelRemaining(order({ status: 'CANCELLED', days: [day({ deliverOn: '2026-09-25T00:00:00.000Z' })] }), NOW),
+      canCancelRemaining(order({ status: 'CANCELLED', days: [day({ deliverOn: '2026-09-25T00:00:00.000Z' })] }), CUTOFF, NOW),
     ).toBe(false);
   });
 
@@ -98,6 +100,7 @@ describe('canCancelRemaining', () => {
     expect(
       canCancelRemaining(
         order({ days: [day({ deliverOn: '2026-09-10T00:00:00.000Z', status: 'DELIVERED' })] }),
+        CUTOFF,
         NOW,
       ),
     ).toBe(false);
@@ -112,6 +115,7 @@ describe('canCancelRemaining', () => {
             day({ deliverOn: '2026-09-25T00:00:00.000Z' }),
           ],
         }),
+        CUTOFF,
         NOW,
       ),
     ).toBe(false);
@@ -127,6 +131,7 @@ describe('canCancelRemaining', () => {
             day({ deliverOn: '2026-09-25T00:00:00.000Z' }),
           ],
         }),
+        CUTOFF,
         NOW,
       ),
     ).toBe(true);

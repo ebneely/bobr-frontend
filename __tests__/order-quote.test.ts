@@ -23,6 +23,8 @@ function draft(partial: Partial<OrderDraft> = {}): OrderDraft {
     addressLine: '  ul. Marszałkowska 1 ',
     city: 'Warszawa ',
     postalCode: '00-950',
+    // The registry defaults as of 2026-09-21; the page reads them from the API.
+    rules: { calendarMinDays: 5, oneTimeDayCount: 1 },
     ...partial,
   };
 }
@@ -79,6 +81,15 @@ describe('buildQuoteRequest', () => {
       ready: false,
       missing: 'address',
     });
+  });
+
+  it('follows the admin minimum and one-time day count', () => {
+    const rules = { calendarMinDays: 3, oneTimeDayCount: 2 };
+    expect(ready(buildQuoteRequest(draft({ days: FIVE.slice(0, 3), rules }))).input.days).toHaveLength(3);
+    expect(buildQuoteRequest(draft({ days: FIVE.slice(0, 2), rules }))).toEqual({ ready: false, missing: 'minDays' });
+    const oneTime = ready(buildQuoteRequest(draft({ mode: 'ONE_TIME', days: FIVE.slice(0, 3), rules })));
+    // Sorted first, then capped at the admin's count.
+    expect(oneTime.input.days).toEqual(['2026-09-17', '2026-09-18']);
   });
 
   it('lets a one-time order through with a single day', () => {

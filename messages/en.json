@@ -60,14 +60,14 @@
     "pickMeal": "Choose a diet",
     "pickMode": "How are you ordering?",
     "oneTime": "One-time",
-    "oneTimeNote": "A single delivery, shipping charged.",
+    "oneTimeNote": "{count, plural, one {A single delivery} other {# deliveries}}, shipping paid by you.",
     "calendar": "Calendar",
-    "calendarNote": "Free delivery, five days minimum.",
+    "calendarNote": "{free, select, yes {Free delivery, at least} other {At least}} {minDays, plural, one {# day} other {# days}}.",
     "pickDays": "Choose your delivery days",
-    "leadTime": "The earliest delivery is the day after tomorrow — the kitchen needs notice. You can pick days up to the end of next month.",
+    "leadTime": "The earliest delivery is {earliest}. You can pick days up to {latest}.",
     "selected": "Days selected: {count}",
-    "minDays": "A calendar order needs at least 5 days.",
-    "ladder": "Discounts: 10 days — 10% · 20 days — 15% · a whole month — 20%",
+    "minDays": "A calendar order needs at least {minDays, plural, one {# day} other {# days}}.",
+    "ladder": "Discounts:",
     "place": "Order with obligation to pay",
     "placing": "Placing your order…",
     "successTitle": "Order placed",
@@ -107,7 +107,7 @@
     "summaryMissing": {
       "meal": "Pick a diet and we will show the total.",
       "days": "Pick your delivery days and we will show the total.",
-      "minDays": "A calendar order needs at least 5 days — pick more days to see the total.",
+      "minDays": "A calendar order needs at least {minDays, plural, one {# day} other {# days}} — pick more days to see the total.",
       "address": "Enter the delivery address — the total including delivery appears here."
     },
     "summaryLoading": "Working out the total…",
@@ -128,7 +128,10 @@
     "contactPhone": "Contact phone",
     "contactPhoneHint": "A number the courier can reach you on.",
     "deliveryNotes": "Notes for the courier",
-    "deliveryNotesHint": "E.g. gate code or floor. Up to 300 characters."
+    "deliveryNotesHint": "E.g. gate code or floor. Up to 300 characters.",
+    "ladderTier": "{days, plural, one {# day} other {# days}} — {percent}%",
+    "ladderMonth": "a whole month — {percent}%",
+    "dayClosed": "no delivery"
   },
   "consultation": {
     "eyebrow": "Consultation",
@@ -174,7 +177,7 @@
     "eyebrow": "Diet catering",
     "titleLead": "Fresh meals every day, on a diet",
     "titleEm": "built around you",
-    "subtitle": "Ketogenic, gluten-free and allergy-safe meals from <b>BOBR</b>, built from your profile and a consultation with Dr Abdelrahman.",
+    "subtitle": "Ketogenic, gluten-free and allergy-safe meals from <b>BOBR</b>, built from your profile and a consultation with our doctor.",
     "cta": "Get started",
     "ctaSecondary": "How it works",
     "statValue": "3",
@@ -195,7 +198,8 @@
     },
     "c": {
       "title": "A doctor in the loop",
-      "body": "A consultation with Dr Abdelrahman before a meal and before a plan — optional, 100 PLN a session."
+      "body": "A consultation with our doctor before a meal and before a plan — optional.",
+      "meta": "With {doctor} · {price} a session"
     }
   },
   "diets": {
@@ -216,7 +220,8 @@
     },
     "CONSULTATION": {
       "name": "Consultation",
-      "body": "A session with Dr Abdelrahman."
+      "body": "A session with our doctor.",
+      "bodyWithDoctor": "A session with {doctor}."
     },
     "perDay": "per day",
     "orderCta": "Order",
@@ -237,7 +242,8 @@
     },
     "three": {
       "title": "Pick a diet and days",
-      "body": "One-time, or on the calendar with a five-meal minimum."
+      "body": "One-time or on a calendar, at least {minDays, plural, one {# meal} other {# meals}}.",
+      "bodyGeneric": "One-time or on a calendar."
     },
     "four": {
       "title": "Take the delivery",
@@ -249,31 +255,22 @@
     "titleLead": "The longer you commit,",
     "titleEm": "the less you pay",
     "body": "A one-time order with shipping on you, or the calendar — and then shipping is on us.",
-    "t1": {
+    "oneTime": {
       "days": "One-time",
-      "note": "Shipping paid by you",
-      "discount": "—"
+      "note": "Delivery paid by you"
     },
-    "t2": {
-      "days": "From 5 days",
-      "note": "Calendar, free shipping",
-      "discount": "—"
+    "calendar": {
+      "days": "From {minDays, plural, one {# day} other {# days}}",
+      "note": "{free, select, yes {Calendar, free delivery} other {Calendar}}"
     },
-    "t3": {
-      "days": "10 days",
-      "note": "Free shipping",
-      "discount": "10%"
+    "tier": {
+      "days": "{days, plural, one {# day} other {# days}}",
+      "note": "{free, select, yes {Free delivery} other {Calendar}}"
     },
-    "t4": {
-      "days": "20 days",
-      "note": "Free shipping",
-      "discount": "15%"
+    "month": {
+      "days": "Whole month"
     },
-    "t5": {
-      "days": "Whole month",
-      "note": "Free shipping",
-      "discount": "20%"
-    }
+    "none": "—"
   },
   "ctaBand": {
     "titleLead": "Ready to",
@@ -285,7 +282,9 @@
     "tagline": "Diet catering, delivered.",
     "links": "Navigation",
     "contact": "Contact",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "phone": "Phone",
+    "email": "Email"
   },
   "menu": {
     "metaTitle": "Menu — BOBR",
@@ -487,7 +486,7 @@
       "ORDER_NOT_FOUND": "We could not find that order.",
       "DELIVERY_TOO_SOON": "That is too soon for delivery — the earliest possible day is {earliest}.",
       "DELIVERY_TOO_FAR": "Choose a day no later than {latest}.",
-      "ONE_TIME_SINGLE_DAY": "A one-time order is a single delivery — choose exactly {days} day.",
+      "ONE_TIME_SINGLE_DAY": "A one-time order is {days, plural, one {a single delivery — choose exactly # day} other {# deliveries — choose exactly # days}}.",
       "CONSULTATION_NOT_FOUND": "We could not find that consultation.",
       "NOT_DELIVERED": "We do not deliver to this postal code yet.",
       "INVALID_DATE": "That is not a valid date.",
@@ -528,7 +527,11 @@
       "TOO_BIG": "Must be at most {maximum}.",
       "INVALID_FORMAT": "The format is not valid.",
       "INVALID_OPTION": "Choose one of the available options.",
-      "INVALID": "That value is not valid."
+      "INVALID": "That value is not valid.",
+      "DAY_NOT_DELIVERED": "We don't deliver on that day of the week ({day}) — choose another day.",
+      "DAY_CLOSED": "We're closed on {day} — choose another day.",
+      "INTAKE_STALE": "Your profile is more than {maxAgeDays, plural, one {# day} other {# days}} old — review and save it before ordering.",
+      "CONSULTATION_SLOT_INVALID": "Choose a time from {start} to {end}, every {stepMinutes} minutes (Warsaw time)."
     },
     "fields": {
       "delivery_addressLine": "Address",

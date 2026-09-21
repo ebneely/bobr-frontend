@@ -1,6 +1,9 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/motion/Reveal';
+import { formatGrosze } from '@/lib/api/orders';
+import { getPublicSettingsForServer } from '@/lib/api/server-settings';
+import { localized } from '@/lib/api/settings';
 
 /**
  * Three value cards on the alternate cream band.
@@ -11,6 +14,11 @@ import { Reveal } from '@/components/motion/Reveal';
  */
 export async function ValueProps() {
   const t = await getTranslations('value');
+  const locale = await getLocale();
+  // The consultation card names the doctor and the price from the admin's
+  // settings — data beside the copy, never inside a sentence (Polish would
+  // have to decline the name).
+  const settings = await getPublicSettingsForServer();
   const keys = ['a', 'b', 'c'] as const;
 
   return (
@@ -76,6 +84,18 @@ export async function ValueProps() {
                 <p className="bobr-body" style={{ fontSize: 'var(--bobr-text-sm)' }}>
                   {t(`${key}.body`)}
                 </p>
+                {key === 'c' && settings && (
+                  <p
+                    className="bobr-body"
+                    data-testid="consultation-meta"
+                    style={{ fontSize: 'var(--bobr-text-sm)', color: 'var(--bobr-accent)' }}
+                  >
+                    {t('c.meta', {
+                      doctor: localized(settings.doctorName, locale),
+                      price: formatGrosze(settings.consultationPriceGrosze, locale),
+                    })}
+                  </p>
+                )}
               </article>
             </Reveal>
           ))}

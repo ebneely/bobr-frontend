@@ -1,20 +1,58 @@
 import { getTranslations } from 'next-intl/server';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Reveal } from '@/components/motion/Reveal';
+import { getPublicSettingsForServer } from '@/lib/api/server-settings';
+
+interface LadderRow {
+  key: string;
+  days: string;
+  note: string;
+  discount: string;
+}
 
 /**
- * The commitment ladder from the spec: one-time, then the calendar tiers at
- * 5 / 10 / 20 days and a whole month.
+ * The commitment ladder: one-time, the calendar minimum, each discount tier and
+ * the whole month — built from the admin's settings (`/v1/settings/public`,
+ * ebneely/bobr-backend#57), so the page shows the tiers checkout applies.
  *
- * PRESENTATION ONLY. These rows render strings from the message catalogue —
- * nothing here computes a price, applies a discount, or validates a selection.
- * The actual rules are still being decided (docs/SPEC.md carries an open
- * question about whether the five-meal minimum and the "+4 days" threshold are
- * one rule or two), so putting arithmetic here would bake in a guess.
+ * PRESENTATION ONLY: nothing here prices or validates anything; the server does
+ * that on the quote. Without settings only the one-time row is shown rather
+ * than a guessed ladder.
  */
 export async function PricingLadder() {
   const t = await getTranslations('pricing');
-  const tiers = ['t1', 't2', 't3', 't4', 't5'] as const;
+  const settings = await getPublicSettingsForServer();
+  const free = settings?.calendarFreeShipping ? 'yes' : 'no';
+
+  const tiers: LadderRow[] = [
+    { key: 'oneTime', days: t('oneTime.days'), note: t('oneTime.note'), discount: t('none') },
+    ...(settings
+      ? [
+          {
+            key: 'calendar',
+            days: t('calendar.days', { minDays: settings.calendarMinDays }),
+            note: t('calendar.note', { free }),
+            discount: t('none'),
+          },
+          ...settings.discountTiers.map((tier) => ({
+            key: `tier-${tier.minDays}`,
+            days: t('tier.days', { days: tier.minDays }),
+            note: t('tier.note', { free }),
+            discount: `${tier.percent}%`,
+          })),
+          ...(settings.wholeMonthPercent > 0
+            ? [
+                {
+                  key: 'month',
+                  days: t('month.days'),
+                  note: t('tier.note', { free }),
+                  discount: `${settings.wholeMonthPercent}%`,
+                },
+              ]
+            : []),
+        ]
+      : []),
+  ];
 
   return (
     <section
@@ -39,7 +77,7 @@ export async function PricingLadder() {
             const featured = i === tiers.length - 1;
 
             return (
-              <Reveal key={tier} index={i} scale>
+              <Reveal key={tier.key} index={i} scale>
                 <div
                   className="bobr-card"
                   style={{
@@ -62,7 +100,7 @@ export async function PricingLadder() {
                         fontWeight: 'var(--bobr-weight-semibold)',
                       }}
                     >
-                      {t(`${tier}.days`)}
+                      {tier.days}
                     </span>
                     <span
                       style={{
@@ -70,7 +108,7 @@ export async function PricingLadder() {
                         color: featured ? 'rgba(255,250,229,0.72)' : 'var(--bobr-fg-muted)',
                       }}
                     >
-                      {t(`${tier}.note`)}
+                      {tier.note}
                     </span>
                   </div>
 
@@ -85,7 +123,7 @@ export async function PricingLadder() {
                       color: 'var(--bobr-accent)',
                     }}
                   >
-                    {t(`${tier}.discount`)}
+                    {tier.discount}
                   </span>
                 </div>
               </Reveal>

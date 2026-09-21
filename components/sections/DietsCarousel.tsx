@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button';
 import { RemoteImage } from '@/components/ui/RemoteImage';
 import { mealDescription, mealName, type Meal } from '@/lib/api/meals';
 import { formatGrosze } from '@/lib/api/orders';
-import { CONSULTATION_PRICE_GROSZE } from '@/lib/api/consultations';
 import { getMealsForServer } from '@/lib/api/server-meals';
+import { getPublicSettingsForServer } from '@/lib/api/server-settings';
+import { localized } from '@/lib/api/settings';
 
 /**
  * The diets on offer as a carousel, with their real prices (G11).
@@ -25,7 +26,12 @@ import { getMealsForServer } from '@/lib/api/server-meals';
 export async function DietsCarousel() {
   const t = await getTranslations('diets');
   const locale = await getLocale();
-  const meals = await getMealsForServer();
+  const [meals, settings] = await Promise.all([getMealsForServer(), getPublicSettingsForServer()]);
+  // Doctor and price are the admin's settings; without them the card still
+  // describes the service, just without figures.
+  const consultationBody = settings
+    ? t('CONSULTATION.bodyWithDoctor', { doctor: localized(settings.doctorName, locale) })
+    : t('CONSULTATION.body');
 
   const tones = ['green', 'cream', 'orange'] as const;
 
@@ -55,11 +61,11 @@ export async function DietsCarousel() {
                 key="CONSULTATION"
                 tone="green"
                 name={t('CONSULTATION.name')}
-                body={t('CONSULTATION.body')}
+                body={consultationBody}
                 cta={t('consultationCta')}
                 href="/consultation"
-                price={formatGrosze(CONSULTATION_PRICE_GROSZE, locale)}
-                priceNote={t('perConsultation')}
+                price={settings ? formatGrosze(settings.consultationPriceGrosze, locale) : undefined}
+                priceNote={settings ? t('perConsultation') : undefined}
               />,
             ]
           : (['KETOGENIC', 'GLUTEN_FREE', 'ALLERGIES', 'CONSULTATION'] as const).map((key, i) => (

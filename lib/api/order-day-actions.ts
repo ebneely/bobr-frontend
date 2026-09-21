@@ -1,4 +1,4 @@
-import { earliestDeliveryDay } from '@/lib/dates';
+import { warsawDaysFromToday } from '@/lib/dates';
 import type { Order, OrderDay } from './orders';
 
 /**
@@ -6,7 +6,8 @@ import type { Order, OrderDay } from './orders';
  *
  * Mirrors the backend exactly (`canChangeDay` in
  * `bobr_backend/src/orders/checkout-pricing.ts`): a day may be skipped or
- * moved only up to the SAME lead time ordering itself uses. Pure and
+ * moved only while it is at least the admin's `changeCutoffDays` away
+ * (`/v1/settings/public`, ebneely/bobr-backend#57). Pure and
  * unit-tested so the deadline rule lives in one place, not scattered through
  * button `disabled` props.
  */
@@ -17,8 +18,12 @@ function dayKey(deliverOn: string): string {
 }
 
 /** Whether a SCHEDULED day at `deliverOnDay` may still be skipped or moved. */
-export function canChangeScheduledDay(deliverOnDay: string, now: Date = new Date()): boolean {
-  return dayKey(deliverOnDay) >= earliestDeliveryDay(now);
+export function canChangeScheduledDay(
+  deliverOnDay: string,
+  changeCutoffDays: number,
+  now: Date = new Date(),
+): boolean {
+  return dayKey(deliverOnDay) >= warsawDaysFromToday(changeCutoffDays, now);
 }
 
 export interface DayActions {
@@ -37,6 +42,7 @@ export interface DayActions {
 export function dayActions(
   day: Pick<OrderDay, 'deliverOn' | 'status'>,
   today: string,
+  changeCutoffDays: number,
   now: Date = new Date(),
 ): DayActions {
   if (day.status === 'CANCELLED') {
@@ -45,7 +51,7 @@ export function dayActions(
 
   const key = dayKey(day.deliverOn);
   const isPastOrToday = key <= today;
-  const canChange = day.status === 'SCHEDULED' && !isPastOrToday && canChangeScheduledDay(key, now);
+  const canChange = day.status === 'SCHEDULED' && !isPastOrToday && canChangeScheduledDay(key, changeCutoffDays, now);
 
   return {
     // The backend refuses tracking a day that has not happened yet, and one
@@ -64,10 +70,11 @@ export function dayActions(
  */
 export function canCancelRemaining(
   order: Pick<Order, 'status' | 'days'>,
+  changeCutoffDays: number,
   now: Date = new Date(),
 ): boolean {
   if (order.status === 'CANCELLED') return false;
   const scheduled = order.days.filter((d) => d.status === 'SCHEDULED');
   if (scheduled.length === 0) return false;
-  return scheduled.every((d) => canChangeScheduledDay(d.deliverOn, now));
+  return scheduled.every((d) => canChangeScheduledDay(d.deliverOn, changeCutoffDays, now));
 }

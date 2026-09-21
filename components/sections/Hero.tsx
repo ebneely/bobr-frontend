@@ -5,17 +5,11 @@ import { EyebrowChip } from '@/components/ui/EyebrowChip';
 import { Counter } from '@/components/motion/Counter';
 import { SlideIn } from '@/components/motion/SlideIn';
 import { PlaceholderMedia } from '@/components/ui/PlaceholderMedia';
+import { RemoteImage } from '@/components/ui/RemoteImage';
+import { getMealsForServer } from '@/lib/api/server-meals';
+import { getPublicSettingsForServer } from '@/lib/api/server-settings';
 import { Link } from '@/lib/i18n/navigation';
 import { HERO_PLATE_SRC } from '@/lib/assets';
-
-/**
- * The number of diet types on offer: ketogenic, gluten-free, allergies.
- *
- * A fact about the product, not a translatable string, so it lives here rather
- * than in the message catalogues where a translator could change 3 to 4 and
- * quietly make the badge lie.
- */
-const DIET_TYPE_COUNT = 3;
 
 /**
  * The explanatory home hero, rebuilt against maestroo.framer.ai (issue #22).
@@ -40,6 +34,12 @@ const DIET_TYPE_COUNT = 3;
  */
 export async function Hero() {
   const t = await getTranslations('home');
+  const [meals, settings] = await Promise.all([getMealsForServer(), getPublicSettingsForServer()]);
+  // Diet types actually on offer, counted from the admin's active meals — not
+  // a constant that goes stale the day a diet is added or retired.
+  const dietTypeCount = new Set(meals.map((meal) => meal.type)).size;
+  // The admin's hero photo when one is uploaded; the bundled plate otherwise.
+  const hero = settings?.heroImage ?? null;
 
   return (
     <section className="bobr-hero">
@@ -70,7 +70,20 @@ export async function Hero() {
       <div className="bobr-hero__media">
         <SlideIn delay={0.8} className="bobr-hero__slide">
           <div className="bobr-hero__frame">
-            {HERO_PLATE_SRC ? (
+            {hero ? (
+              <RemoteImage
+                src={hero.url}
+                srcSet={hero.srcSet}
+                width={hero.width}
+                height={hero.height}
+                alt=""
+                priority
+                sizes="(max-width: 899px) 100vw, 53vw"
+                className="bobr-hero__img"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+                fallback={<PlaceholderMedia tone="green" ratio="auto" radius="0" />}
+              />
+            ) : HERO_PLATE_SRC ? (
               <Image
                 src={HERO_PLATE_SRC}
                 alt=""
@@ -85,10 +98,11 @@ export async function Hero() {
             )}
           </div>
 
+          {dietTypeCount > 0 && (
           <div className="bobr-hero__stat">
             <div className="bobr-hero__stat-core">
               <Counter
-                to={DIET_TYPE_COUNT}
+                to={dietTypeCount}
                 className="bobr-hero__stat-value"
                 // Counting to 3 over the two seconds a three-digit climb needs
                 // reads as broken, so the duration matches the distance.
@@ -97,6 +111,7 @@ export async function Hero() {
               <span className="bobr-hero__stat-label">{t('statLabel')}</span>
             </div>
           </div>
+          )}
         </SlideIn>
       </div>
     </section>

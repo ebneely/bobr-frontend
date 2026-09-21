@@ -1,4 +1,6 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { mealName } from '@/lib/api/meals';
+import { getMealsForServer } from '@/lib/api/server-meals';
 import { Marquee } from '@/components/motion/Marquee';
 
 /**
@@ -14,8 +16,16 @@ import { Marquee } from '@/components/motion/Marquee';
  */
 export async function TickerBand() {
   const t = await getTranslations('mealTypes');
-
-  const words = ['KETOGENIC', 'GLUTEN_FREE', 'ALLERGIES', 'CONSULTATION'] as const;
+  const locale = await getLocale();
+  // The admin's active meals, by name; the diet-type labels only while the
+  // catalogue is empty, so the band never advertises something not on offer.
+  const meals = await getMealsForServer();
+  const words = [
+    ...(meals.length > 0
+      ? meals.map((meal) => mealName(meal, locale))
+      : (['KETOGENIC', 'GLUTEN_FREE', 'ALLERGIES'] as const).map((type) => t(type))),
+    t('CONSULTATION'),
+  ];
 
   return (
     <div
@@ -28,9 +38,9 @@ export async function TickerBand() {
       }}
     >
       <Marquee duration={28}>
-        {words.map((word) => (
+        {words.map((word, i) => (
           <span
-            key={word}
+            key={`${i}-${word}`}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -41,7 +51,7 @@ export async function TickerBand() {
               letterSpacing: '0.02em',
             }}
           >
-            {t(word)}
+            {word}
             {/* Separator dot, in the accent so the band has a pulse of colour
                 as it passes rather than reading as one grey stripe. */}
             <span

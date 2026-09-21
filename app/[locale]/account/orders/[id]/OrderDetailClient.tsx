@@ -21,10 +21,12 @@ import {
   formatDayLabel,
   formatMonthLabel,
   groupByMonth,
+  isDeliveryDay,
   offeredDeliveryDays,
   todayInWarsaw,
 } from '@/lib/dates';
 import { useCancelOrder, useMoveDay, useMyOrder, useSkipDay, useTrackDay } from '@/lib/hooks/use-account';
+import { useClosedDays, usePublicSettings } from '@/lib/hooks/use-settings';
 import { Link } from '@/lib/i18n/navigation';
 import { OrderStatusBadge, useOrderMealName } from '../../_components/order-bits';
 import { EmptyState, QueryGate, StatusBadge } from '../../_components/ui';
@@ -273,7 +275,13 @@ function DayRow({
   const locale = useLocale();
   const translateError = useApiErrorTranslate();
   const timing = dayTiming(day.deliverOn, today);
-  const actions = dayActions(day, today);
+  // The skip/move deadline and the move calendar are the admin's settings;
+  // until they arrive, nothing that depends on them is offered.
+  const settings = usePublicSettings().data;
+  const closedDays = useClosedDays(today).data;
+  const actions = settings
+    ? dayActions(day, today, settings.changeCutoffDays)
+    : { ...dayActions(day, today, 0), canSkip: false, canMove: false };
 
   const track = useTrackDay(order.id);
   const skip = useSkipDay();
@@ -283,16 +291,21 @@ function DayRow({
   const [moving, setMoving] = useState(false);
   const [moveTo, setMoveTo] = useState('');
 
-  // The same window the order form offers — earliest deliverable day through
-  // the end of next month — minus dates this order already has, so a move
+  // The same days the order form offers — deliverable days from the earliest
+  // through the order window — minus dates this order already has, so a move
   // cannot collide with another day of the same order.
   const takenDates = useMemo(
     () => new Set(order.days.filter((d) => d.id !== day.id).map((d) => orderDayKey(d.deliverOn))),
     [order.days, day.id],
   );
   const moveOptions = useMemo(
-    () => offeredDeliveryDays().filter((d) => !takenDates.has(d)),
-    [takenDates],
+    () =>
+      settings && closedDays
+        ? offeredDeliveryDays(settings).filter(
+            (d) => !takenDates.has(d) && isDeliveryDay(d, settings, closedDays),
+          )
+        : [],
+    [takenDates, settings, closedDays],
   );
 
   function trackError(mutation: { error: unknown }) {
@@ -425,7 +438,8 @@ function CancelOrderCard({ order }: { order: Order }) {
   const [confirming, setConfirming] = useState(false);
   const [reason, setReason] = useState('');
 
-  const allowed = canCancelRemaining(order);
+  const settings = usePublicSettings().data;
+  const allowed = settings ? canCancelRemaining(order, settings.changeCutoffDays) : false;
   if (order.status === 'CANCELLED' || !allowed) return null;
 
   const apiMessage = cancel.error instanceof ApiError ? formatApiError(cancel.error.body, translateError) : null;

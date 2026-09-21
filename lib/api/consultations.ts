@@ -34,9 +34,6 @@ export interface Consultation {
   createdAt: string;
 }
 
-/** The consultation price, for display before booking. The server freezes its own. */
-export const CONSULTATION_PRICE_GROSZE = 10000;
-
 /** Longest note the server accepts. */
 export const CONSULTATION_NOTE_MAX = 1000;
 

@@ -60,14 +60,14 @@
     "pickMeal": "Wybierz dietę",
     "pickMode": "Jak zamawiasz?",
     "oneTime": "Jednorazowo",
-    "oneTimeNote": "Pojedyncza dostawa, płatny transport.",
+    "oneTimeNote": "{count, plural, one {Pojedyncza dostawa} few {# dostawy} many {# dostaw} other {# dostawy}}, płatny transport.",
     "calendar": "Kalendarz",
-    "calendarNote": "Dostawa gratis, minimum 5 dni.",
+    "calendarNote": "{free, select, yes {Dostawa gratis, minimum} other {Minimum}} {minDays, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}.",
     "pickDays": "Wybierz dni dostawy",
-    "leadTime": "Najwcześniejsza dostawa to pojutrze — kuchnia potrzebuje czasu. Możesz wybrać dni do końca przyszłego miesiąca.",
+    "leadTime": "Najwcześniejsza dostawa: {earliest}. Dni możesz wybrać do {latest}.",
     "selected": "Wybrane dni: {count}",
-    "minDays": "Kalendarz wymaga minimum 5 dni.",
-    "ladder": "Rabaty: 10 dni — 10% · 20 dni — 15% · cały miesiąc — 20%",
+    "minDays": "Kalendarz wymaga minimum {minDays, plural, one {# dnia} other {# dni}}.",
+    "ladder": "Rabaty:",
     "place": "Zamawiam z obowiązkiem zapłaty",
     "placing": "Składam zamówienie…",
     "successTitle": "Zamówienie złożone",
@@ -107,7 +107,7 @@
     "summaryMissing": {
       "meal": "Wybierz dietę, a pokażemy sumę.",
       "days": "Wybierz dni dostawy, a pokażemy sumę.",
-      "minDays": "Kalendarz wymaga minimum 5 dni — zaznacz więcej dni, a pokażemy sumę.",
+      "minDays": "Kalendarz wymaga minimum {minDays, plural, one {# dnia} other {# dni}} — zaznacz więcej dni, a pokażemy sumę.",
       "address": "Podaj adres dostawy — suma z kosztem dostawy pojawi się tutaj."
     },
     "summaryLoading": "Liczę sumę…",
@@ -128,7 +128,10 @@
     "contactPhone": "Telefon kontaktowy",
     "contactPhoneHint": "Numer, pod którym kurier może się skontaktować.",
     "deliveryNotes": "Uwagi dla kuriera",
-    "deliveryNotesHint": "Np. kod do bramy albo piętro. Maksymalnie 300 znaków."
+    "deliveryNotesHint": "Np. kod do bramy albo piętro. Maksymalnie 300 znaków.",
+    "ladderTier": "{days, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}} — {percent}%",
+    "ladderMonth": "cały miesiąc — {percent}%",
+    "dayClosed": "nie dowozimy"
   },
   "consultation": {
     "eyebrow": "Konsultacja",
@@ -174,7 +177,7 @@
     "eyebrow": "Katering dietetyczny",
     "titleLead": "Świeże posiłki na diecie",
     "titleEm": "dopasowanej do Ciebie",
-    "subtitle": "Keto, bezglutenowe i dla alergików — posiłki <b>BOBR</b> układane na podstawie Twojego profilu i konsultacji z dr Abdelrahmanem.",
+    "subtitle": "Keto, bezglutenowe i dla alergików — posiłki <b>BOBR</b> układane na podstawie Twojego profilu i konsultacji lekarskiej.",
     "cta": "Rozpocznij",
     "ctaSecondary": "Jak to działa",
     "statValue": "3",
@@ -195,7 +198,8 @@
     },
     "c": {
       "title": "Opieka lekarza",
-      "body": "Konsultacja z dr Abdelrahmanem przed posiłkiem i przed planem — opcjonalnie, 100 zł za sesję."
+      "body": "Konsultacja lekarska przed posiłkiem i przed planem — opcjonalna.",
+      "meta": "Prowadzi: {doctor} · {price} za sesję"
     }
   },
   "diets": {
@@ -216,7 +220,8 @@
     },
     "CONSULTATION": {
       "name": "Konsultacja",
-      "body": "Rozmowa z dr Abdelrahmanem."
+      "body": "Rozmowa z lekarzem.",
+      "bodyWithDoctor": "Prowadzi: {doctor}."
     },
     "perDay": "za dzień",
     "orderCta": "Zamów",
@@ -237,7 +242,8 @@
     },
     "three": {
       "title": "Wybierz dietę i dni",
-      "body": "Jednorazowo albo w kalendarzu, minimum pięć posiłków."
+      "body": "Jednorazowo albo w kalendarzu, minimum {minDays, plural, one {# posiłek} few {# posiłki} many {# posiłków} other {# posiłku}}.",
+      "bodyGeneric": "Jednorazowo albo w kalendarzu."
     },
     "four": {
       "title": "Odbierz dostawę",
@@ -249,31 +255,22 @@
     "titleLead": "Im dłużej,",
     "titleEm": "tym taniej",
     "body": "Zamówienie jednorazowe z dostawą po stronie klienta, albo kalendarz — wtedy dostawa jest po naszej stronie.",
-    "t1": {
+    "oneTime": {
       "days": "Jednorazowo",
-      "note": "Dostawa po stronie klienta",
-      "discount": "—"
+      "note": "Dostawa po stronie klienta"
     },
-    "t2": {
-      "days": "od 5 dni",
-      "note": "Kalendarz, dostawa gratis",
-      "discount": "—"
+    "calendar": {
+      "days": "od {minDays, plural, one {# dnia} other {# dni}}",
+      "note": "{free, select, yes {Kalendarz, dostawa gratis} other {Kalendarz}}"
     },
-    "t3": {
-      "days": "10 dni",
-      "note": "Dostawa gratis",
-      "discount": "10%"
+    "tier": {
+      "days": "{days, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}}",
+      "note": "{free, select, yes {Dostawa gratis} other {Kalendarz}}"
     },
-    "t4": {
-      "days": "20 dni",
-      "note": "Dostawa gratis",
-      "discount": "15%"
+    "month": {
+      "days": "Cały miesiąc"
     },
-    "t5": {
-      "days": "Cały miesiąc",
-      "note": "Dostawa gratis",
-      "discount": "20%"
-    }
+    "none": "—"
   },
   "ctaBand": {
     "titleLead": "Gotowy, żeby",
@@ -285,7 +282,9 @@
     "tagline": "Katering dietetyczny z dostawą.",
     "links": "Nawigacja",
     "contact": "Kontakt",
-    "rights": "Wszelkie prawa zastrzeżone."
+    "rights": "Wszelkie prawa zastrzeżone.",
+    "phone": "Telefon",
+    "email": "E-mail"
   },
   "menu": {
     "metaTitle": "Menu — BOBR",
@@ -487,7 +486,7 @@
       "ORDER_NOT_FOUND": "Nie znaleźliśmy tego zamówienia.",
       "DELIVERY_TOO_SOON": "Za wcześnie na dostawę — najbliższy możliwy dzień to {earliest}.",
       "DELIVERY_TOO_FAR": "Wybierz dzień nie później niż {latest}.",
-      "ONE_TIME_SINGLE_DAY": "Zamówienie jednorazowe to jedna dostawa — wybierz dokładnie {days} dzień.",
+      "ONE_TIME_SINGLE_DAY": "Zamówienie jednorazowe to {days, plural, one {jedna dostawa — wybierz dokładnie # dzień} few {# dostawy — wybierz dokładnie # dni} many {# dostaw — wybierz dokładnie # dni} other {# dostawy — wybierz dokładnie # dnia}}.",
       "CONSULTATION_NOT_FOUND": "Nie znaleźliśmy tej konsultacji.",
       "NOT_DELIVERED": "Pod ten kod pocztowy jeszcze nie dowozimy.",
       "INVALID_DATE": "To nie jest poprawna data.",
@@ -528,7 +527,11 @@
       "TOO_BIG": "Wartość może wynosić najwyżej {maximum}.",
       "INVALID_FORMAT": "Nieprawidłowy format.",
       "INVALID_OPTION": "Wybierz jedną z dostępnych opcji.",
-      "INVALID": "Nieprawidłowa wartość."
+      "INVALID": "Nieprawidłowa wartość.",
+      "DAY_NOT_DELIVERED": "Nie dowozimy w ten dzień tygodnia ({day}) — wybierz inny dzień.",
+      "DAY_CLOSED": "{day} jesteśmy nieczynni — wybierz inny dzień.",
+      "INTAKE_STALE": "Twój profil ma ponad {maxAgeDays, plural, one {# dzień} few {# dni} many {# dni} other {# dnia}} — sprawdź go i zapisz ponownie, zanim złożysz zamówienie.",
+      "CONSULTATION_SLOT_INVALID": "Wybierz godzinę od {start} do {end}, co {stepMinutes} min (czas polski)."
     },
     "fields": {
       "delivery_addressLine": "Adres",

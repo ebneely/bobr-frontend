@@ -13,8 +13,14 @@ import { validateAddress } from '@/lib/delivery';
  * ones that decide whether asking the server is worth it at all.
  */
 
-/** Matches the server (`MIN_CALENDAR_DAYS`). */
-export const MIN_CALENDAR_DAYS = 5;
+/**
+ * The admin-edited order rules (`/v1/settings/public`). The server enforces the
+ * same values on the quote; these only decide whether asking is worth it.
+ */
+export interface OrderRules {
+  calendarMinDays: number;
+  oneTimeDayCount: number;
+}
 
 /** Why there is nothing to quote yet, in the order the page asks for things. */
 export type QuoteMissing = 'meal' | 'days' | 'minDays' | 'address';
@@ -26,6 +32,7 @@ export interface OrderDraft {
   addressLine: string;
   city: string;
   postalCode: string;
+  rules: OrderRules;
 }
 
 export type QuoteRequest =
@@ -41,7 +48,7 @@ export function buildQuoteRequest(draft: OrderDraft): QuoteRequest {
   if (!draft.mealId) return { ready: false, missing: 'meal' };
   const days = [...new Set(draft.days)].sort();
   if (days.length === 0) return { ready: false, missing: 'days' };
-  if (draft.mode === 'CALENDAR' && days.length < MIN_CALENDAR_DAYS) {
+  if (draft.mode === 'CALENDAR' && days.length < draft.rules.calendarMinDays) {
     return { ready: false, missing: 'minDays' };
   }
   if (Object.keys(validateAddress(draft)).length > 0) {
@@ -50,9 +57,9 @@ export function buildQuoteRequest(draft: OrderDraft): QuoteRequest {
   const input: PlaceOrderInput = {
     mealId: draft.mealId,
     mode: draft.mode,
-    // One-time is exactly one delivery; the page single-selects, and a stray
-    // second day would only earn a 422.
-    days: draft.mode === 'ONE_TIME' ? days.slice(0, 1) : days,
+    // A one-time order has the admin's fixed day count; the page caps the
+    // selection, and a stray extra day would only earn a 422.
+    days: draft.mode === 'ONE_TIME' ? days.slice(0, draft.rules.oneTimeDayCount) : days,
     delivery: {
       addressLine: draft.addressLine.trim(),
       city: draft.city.trim(),
