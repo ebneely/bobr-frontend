@@ -17,7 +17,3 @@
  * is a one-line change here plus the file.
  */
 export const HERO_PLATE_SRC: string | null = '/hero-plate.png';
-
-/** Intrinsic size, used to reserve space so the image cannot cause layout shift. */
-export const HERO_PLATE_WIDTH = 912;
-export const HERO_PLATE_HEIGHT = 922;
